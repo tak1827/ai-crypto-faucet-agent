@@ -1,6 +1,6 @@
 import { type TransactionResponse, ethers } from "ethers";
 import type { JSONValue } from "llamaindex";
-import { Env } from "../utils/env";
+import { Env } from "../../utils/env";
 
 const privateKey = Env.ethKey("CHAIN_PRIVATE_KEY");
 const rpcUrl = Env.string("CHAIN_RPC_URL");
@@ -32,6 +32,11 @@ export async function sendEth({
 	to,
 	amountInEth,
 }: { to: string; amountInEth: string }): Promise<JSONValue> {
+	// Validate the recipient address
+	if (!ethers.isAddress(to)) {
+		return "Invalid format of recipient address";
+	}
+
 	// Convert ETH amount to Wei
 	const amountInWei = ethers.parseEther(amountInEth);
 
@@ -44,12 +49,23 @@ export async function transferERC20({
 	to,
 	amount,
 }: { to: string; amount: string }): Promise<JSONValue> {
+	// Validate the recipient address
+	if (!ethers.isAddress(to)) {
+		return "Invalid format of recipient address";
+	}
+
 	// Convert amount to token's smallest unit
 	const decimals = await contract.decimals?.();
 	const amountInSmallestUnit = ethers.parseUnits(amount, decimals);
 
 	const txRespPromise = contract.transfer?.(to, amountInSmallestUnit);
 	return handleTxRespForAgent(txRespPromise as Promise<TransactionResponse>);
+}
+
+export function extractAddresses(text: string): string[] {
+	const addressRegex = /0x[a-fA-F0-9]{40}(?=\s|$)/g;
+	const matches = text.match(addressRegex);
+	return matches ? matches : [];
 }
 
 const handleTxRespForAgent = async (
