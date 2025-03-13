@@ -1,5 +1,13 @@
-import { describe, expect, test } from "bun:test";
-import { provider, sendEth, extractAddresses } from "./chain";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { Database } from "../../db/db";
+import { AppDataSource } from "../../db/ormconfig";
+import { AirdropHistory } from "../../entities/airdrop-history";
+import {
+	extractAddresses,
+	provider,
+	sendEth,
+	sumAirDropAmounts,
+} from "./chain";
 
 test("sendEth works", async () => {
 	const to = "0x75fBB5Bd6FDf076Dcaf55243e9E3f3c76F8b5640";
@@ -20,9 +28,9 @@ test("containsAddress works", () => {
 		`Hello! ${address}`,
 		`${address} World!`,
 	];
-	validTexts.forEach((text) => {
+	for (const text of validTexts) {
 		expect(extractAddresses(text)).toEqual([address]);
-	});
+	}
 
 	// Contains two addresses
 	validTexts = [
@@ -31,9 +39,9 @@ test("containsAddress works", () => {
 		`${address} Hello! ${address}`,
 		`${address} World! ${address}`,
 	];
-	validTexts.forEach((text) => {
+	for (const text of validTexts) {
 		expect(extractAddresses(text)).toEqual([address, address]);
-	});
+	}
 
 	// Contains no address
 	const invalidTexts = [
@@ -41,7 +49,44 @@ test("containsAddress works", () => {
 		"Hello! 0x75fBB5Bd6FDf076Dcaf55243e9E3f3c76F8b56 World!",
 		"Hello! 0x75fBB5Bd6FDf076Dcaf55243e9E3f3c76F8b56401 World!",
 	];
-	invalidTexts.forEach((text) => {
+	for (const text of invalidTexts) {
 		expect(extractAddresses(text)).toEqual([]);
+	}
+});
+
+describe("sumAirDropAmounts works", async () => {
+	const db = await new Database(AppDataSource).init();
+	const identifier = "test-identifier";
+	const address = "0x75fBB5Bd6FDf076Dcaf55243e9E3f3c76F8b5640";
+
+	beforeAll(async () => {
+		// insert airdrop histories
+		await db.makeTransaction(async (queryRunner) => {
+			const histories = [
+				new AirdropHistory(identifier, address, 0.1),
+				new AirdropHistory(identifier, address, 1),
+				new AirdropHistory(identifier, address, 10),
+			];
+			for (const history of histories) {
+				await queryRunner.manager.insert(AirdropHistory, history);
+			}
+		});
 	});
-})
+
+	afterAll(async () => {
+		// delete airdrop histories
+		await db.makeTransaction(async (queryRunner) => {
+			await queryRunner.manager.delete(AirdropHistory, { identifier });
+		});
+	});
+
+	test("none zero", async () => {
+		const sum = await sumAirDropAmounts(db, identifier);
+		expect(sum).toBe(11.1);
+	});
+
+	test("zero", async () => {
+		const sum = await sumAirDropAmounts(db, "non-exist-identifier");
+		expect(sum).toBe(0);
+	});
+});

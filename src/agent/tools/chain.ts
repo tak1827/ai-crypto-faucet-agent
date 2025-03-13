@@ -1,5 +1,8 @@
 import { type TransactionResponse, ethers } from "ethers";
 import type { JSONValue } from "llamaindex";
+import type { QueryRunner } from "typeorm";
+import type { Database } from "../../db/db";
+import { AirdropHistory } from "../../entities/airdrop-history";
 import { Env } from "../../utils/env";
 
 const privateKey = Env.ethKey("CHAIN_PRIVATE_KEY");
@@ -66,6 +69,24 @@ export function extractAddresses(text: string): string[] {
 	const addressRegex = /0x[a-fA-F0-9]{40}(?=\s|$)/g;
 	const matches = text.match(addressRegex);
 	return matches ? matches : [];
+}
+
+export async function sumAirDropAmounts(
+	db: Database,
+	identifier: string,
+): Promise<number> {
+	let sum = 0;
+	await db.makeQuery(async (queryRunner: QueryRunner) => {
+		// find all airdrop amounts for the identifier
+		const histories = await queryRunner.manager.find(AirdropHistory, {
+			where: { identifier },
+		});
+		// no airdrop history found
+		if (histories.length === 0) return;
+		// sum all airdrop amounts
+		sum = histories.reduce((sum, history) => sum + Number(history.amount), 0);
+	});
+	return sum;
 }
 
 const handleTxRespForAgent = async (
