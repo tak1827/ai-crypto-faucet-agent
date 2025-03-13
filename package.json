@@ -8,6 +8,10 @@
 		"test": "bun test",
 		"fmt": "biome format --write .",
 		"lint": "biome check --write --unsafe .",
+		"typeorm:base": "bun run --bun typeorm -d ./src/db/ormconfig.ts",
+		"typeorm:init": "bun typeorm:base migration:generate ./src/migrations/init",
+		"typeorm:up": "bun typeorm:base migration:run",
+		"typeorm:down": "bun typeorm:base migration:revert",
 		"chain": "anvil"
 	},
 	"devDependencies": {
@@ -21,7 +25,10 @@
 		"dotenv": "^16.4.7",
 		"ethers": "^6.13.5",
 		"llamaindex": "^0.9.11",
+		"pg": "^8.14.0",
 		"pino": "^9.6.0",
-		"pino-pretty": "^13.0.0"
+		"pino-pretty": "^13.0.0",
+		"reflect-metadata": "^0.2.2",
+		"typeorm": "^0.3.21"
 	}
 }
