@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "ai-crypto-faucet-bot",
+      "name": "ai-crypto-faucet-agent",
       "dependencies": {
         "dotenv": "^16.4.7",
         "ethers": "^6.13.5",

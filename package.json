@@ -1,5 +1,5 @@
 {
-	"name": "ai-crypto-faucet-bot",
+	"name": "ai-crypto-faucet-agent",
 	"module": "index.ts",
 	"type": "module",
 	"license": "MIT",

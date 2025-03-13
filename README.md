@@ -1,5 +1,5 @@
-# ai-crypto-faucet-bot
-A Generative AI Bot primarily used for crypto faucet airdrops, distributing crypto to enthusiastic users. Additionally, it can promote or support projects.
+# ai-crypto-faucet-agent
+A generative AI agent primarily used for crypto faucet airdrops, distributing crypto to enthusiastic users. Additionally, it can promote or support projects.
 
 # Getting Started
 ## Setting Up the Database
