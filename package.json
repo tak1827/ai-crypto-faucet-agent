@@ -5,6 +5,7 @@
 	"license": "MIT",
 	"scripts": {
 		"start": "bun run src/index.ts",
+		"test": "bun test",
 		"fmt": "biome format --write .",
 		"lint": "biome check --write --unsafe .",
 		"chain": "anvil"
