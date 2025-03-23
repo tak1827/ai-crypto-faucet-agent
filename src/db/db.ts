@@ -6,10 +6,6 @@ import type {
 } from "typeorm";
 import logger from "../utils/logger";
 
-/**
- * Class for managing PostgreSQL operations including initialization,
- * transaction handling, and cosine similarity search.
- */
 export class Database {
 	private appDataSource: DataSource;
 	private queryRunner!: QueryRunner;
@@ -30,6 +26,11 @@ export class Database {
 		// Create a new query runner instance from the data source.
 		this.queryRunner = this.appDataSource.createQueryRunner();
 		return this;
+	}
+
+	public async close(): Promise<void> {
+		await this.queryRunner.release();
+		await this.appDataSource.destroy();
 	}
 
 	public async makeQuery(
