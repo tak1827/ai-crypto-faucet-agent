@@ -1,14 +1,14 @@
-import { resolve } from 'node:path'
-import { Env } from '../utils/env'
-import { LLamaCppModel } from './llama_cpp'
+import { resolve } from "node:path";
+import { Env } from "../utils/env";
+import { LLamaCppModel } from "./llama_cpp";
 
-export type Embedder = (_text: string) => Promise<readonly number[]>
+export type Embedder = (_text: string) => Promise<readonly number[]>;
 
 export interface ILLMModel {
-  init(): Promise<ILLMModel>
-  close(): Promise<void>
-  embed(_text: string): Promise<readonly number[]>
-  embedContext(_task: (_embedder: Embedder) => Promise<void>): Promise<void>
+	init(): Promise<ILLMModel>;
+	close(): Promise<void>;
+	embed(_text: string): Promise<readonly number[]>;
+	embedContext(_task: (_embedder: Embedder) => Promise<void>): Promise<void>;
 }
 
 export const promptFromTemplate = (
@@ -33,22 +33,22 @@ export const booleanEncoder = <T>(text: string): T => {
 };
 
 export const createInitalizedModel = async (
-  modelName: string,
+	modelName: string,
 ): Promise<ILLMModel> => {
-  // Create the model
-  let model: ILLMModel | undefined
-  if (modelName === 'llama3.2') {
-    // model = new Llama3_2Model()
-  } else if (modelName.startsWith('openai')) {
-    // const apiKey = Env.string('LLM_OPENAI_API_KEY')
-    // const modelName = Env.string('LLM_OPENAI_MODEL')
-    // const embeddingModelName = modelName.split(':')[1]
-    // model = new OpenAIModel({ apiKey, modelName, embeddingModelName })
-  } else {
-    model = await new LLamaCppModel(
-      resolve(`${Env.path('DIR_MODEL')}/${modelName}`),
-    ).init()
-  }
-  return model!
-}
-
+	// Create the model
+	let model: ILLMModel | undefined;
+	if (modelName === "llama3.2") {
+		// model = new Llama3_2Model()
+	} else if (modelName.startsWith("openai")) {
+		// const apiKey = Env.string('LLM_OPENAI_API_KEY')
+		// const modelName = Env.string('LLM_OPENAI_MODEL')
+		// const embeddingModelName = modelName.split(':')[1]
+		// model = new OpenAIModel({ apiKey, modelName, embeddingModelName })
+	} else {
+		model = await new LLamaCppModel(
+			resolve(`${Env.path("DIR_MODEL")}/${modelName}`),
+		).init();
+	}
+	if (model === undefined) throw new Error(`model ${modelName} not found`);
+	return model;
+};

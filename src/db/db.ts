@@ -79,7 +79,7 @@ export class Database {
 
 	public async *eachRow<Entity extends ObjectLiteral>(
 		query: SelectQueryBuilder<Entity>,
-	): AsyncGenerator<Entity, void, unknown> {
+	): AsyncGenerator<Entity, void, any> {
 		const totalCount = await query.getCount();
 		logger.info(`${totalCount} rows found in the query`);
 
@@ -94,7 +94,7 @@ export class Database {
 		vectorColumnName: string,
 		query: readonly number[],
 		whereQuery?: string,
-		filter?: Record<string, unknown>,
+		filter?: Record<string, any>,
 		k = 3,
 	): Promise<T> {
 		const embeddingString = `[${query.join(",")}]`;
