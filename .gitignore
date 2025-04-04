@@ -137,3 +137,14 @@ dist
 
 # File system stuff
 .DS_Store
+
+# Local notes
+.local
+
+# Models
+data/models/*
+!data/models/.gitkeep
+
+# Embeddings sources
+data/docs/*
+!data/docs/.gitkeep
