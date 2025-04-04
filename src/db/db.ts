@@ -77,6 +77,12 @@ export class Database {
 		}
 	}
 
+	public async saveEntities<Entity>(entities: Entity[]): Promise<void> {
+		await this.makeTransaction(async (queryRunner) => {
+			await queryRunner.manager.save(entities);
+		});
+	}
+
 	public async *eachRow<Entity extends ObjectLiteral>(
 		query: SelectQueryBuilder<Entity>,
 	): AsyncGenerator<Entity, void, any> {
