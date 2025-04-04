@@ -27,7 +27,6 @@
 
 		// TypeORM
 		"emitDecoratorMetadata": true,
-		"experimentalDecorators": true,
-		"strictPropertyInitialization": false,
+		"experimentalDecorators": true
 	}
 }
