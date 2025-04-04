@@ -1,8 +1,10 @@
 import logger from "./logger";
+import { sleep } from "./utils";
 
 const retry = async <T>(
 	leftAttemts: number,
 	task: () => Promise<T>,
+	sleepTime?: number,
 ): Promise<T> => {
 	try {
 		return await task();
@@ -14,6 +16,7 @@ const retry = async <T>(
 				`retry failed, no attempts left. err: ${(err as Error).message}`,
 			);
 		}
+		if (sleepTime) await sleep(sleepTime);
 		return await retry(next, task);
 	}
 };
