@@ -19,10 +19,10 @@ export enum DocumentCategory {
 @Entity()
 export class DocumentCore {
 	@PrimaryGeneratedColumn()
-	id: number;
+	id!: number;
 
 	@Column({ type: "varchar", length: 255 })
-	fileName: string;
+	fileName!: string;
 
 	@Column({ type: "varchar", length: 1014, nullable: true })
 	filePath?: string;
@@ -37,8 +37,8 @@ export class DocumentCore {
 	contentBuffer?: string;
 
 	@CreateDateColumn()
-	createdAt: Date;
+	createdAt!: Date;
 
 	@UpdateDateColumn()
-	updatedAt: Date;
+	updatedAt!: Date;
 }

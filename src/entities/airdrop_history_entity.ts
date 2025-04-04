@@ -5,6 +5,7 @@ import {
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from "typeorm";
+import type { Database } from "../db/db";
 
 @Entity()
 export class AirdropHistory {
@@ -32,3 +33,25 @@ export class AirdropHistory {
 		this.amount = amount;
 	}
 }
+
+export const getAirdropHistories = async (
+	db: Database,
+	identifier: string,
+	orderBy: "ASC" | "DESC" = "DESC",
+): Promise<AirdropHistory[]> => {
+	let result: AirdropHistory[] = [];
+	await db.makeQuery(async (queryRunner) => {
+		const histories = await queryRunner.manager.find(AirdropHistory, {
+			where: {
+				identifier: identifier,
+			},
+			order: {
+				createdAt: orderBy,
+			},
+		});
+		result = histories.map((history) => {
+			return history;
+		});
+	});
+	return result;
+};
