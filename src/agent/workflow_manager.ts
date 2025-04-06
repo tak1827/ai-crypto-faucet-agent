@@ -8,7 +8,7 @@ const MINIMAL_INTERVAL = WORKFLOW_INTERVAL * 2;
 export type Work = (ctx: WorkflowContext) => Promise<void>;
 
 export type WorkflowState = {
-	type: string;
+	name: string;
 	[key: string]: any; // allows flexibility for derived types
 };
 
@@ -24,7 +24,7 @@ export class WorkflowManager {
 		string,
 		{ work: Work; interval: number; ctx: WorkflowContext; expireAt: number }
 	> = {};
-	#interval: NodeJS.Timer;
+	#interval: NodeJS.Timer | undefined;
 	#running = false;
 	#closing = false;
 

@@ -10,6 +10,7 @@ export class Twitter {
 	#port = 3000;
 	#server: Server | undefined;
 	#tokenRefreshTimeout: NodeJS.Timer | undefined;
+	#ownId: string | undefined;
 	client: Client;
 
 	constructor(opts: {
@@ -17,6 +18,7 @@ export class Twitter {
 		clientId?: string;
 		clientSecret?: string;
 		callbackURL?: string;
+		ownId?: string;
 		port?: number;
 	}) {
 		if (opts.clientId && opts.clientSecret && opts.callbackURL) {
@@ -35,6 +37,9 @@ export class Twitter {
 				"set clientId, clientSecret and callbackURL or bearerToken",
 			);
 		}
+		if (opts.ownId) {
+			this.#ownId = opts.ownId;
+		}
 		if (opts.port) {
 			this.#port = opts.port;
 		}
@@ -45,11 +50,13 @@ export class Twitter {
 		const clientId = Env.string("X_CLIENT_ID");
 		const clientSecret = Env.string("X_CLIENT_SECRET");
 		const callbackURL = Env.string("X_CALLBACK_URL");
+		const ownId = Env.string("X_OWN_ID");
 		return new Twitter({
 			bearerToken,
 			clientId,
 			clientSecret,
 			callbackURL,
+			ownId,
 			port,
 		});
 	}
@@ -105,6 +112,13 @@ export class Twitter {
 				}
 			}, 1000);
 		});
+	}
+
+	getOwnId(): string {
+		if (!this.#ownId) {
+			throw new Error("User id is not set");
+		}
+		return this.#ownId;
 	}
 
 	async getTweets(
@@ -170,45 +184,57 @@ export class Twitter {
 		return { userIds, nextToken };
 	}
 
-	async getRepliesToTweet(
-		tweetId: string,
-		convId?: string,
+	async getTweetReplies(
+		tweetIds: string[],
 		nextToken?: string,
 	): Promise<{
-		conversationId: string;
 		nextToken: string;
-		replies: { id: string; content: string }[];
+		replies: {
+			tweetId: string;
+			userId: string;
+			covId: string;
+			content: string;
+		}[];
 	}> {
 		const result = {
-			conversationId: "",
 			nextToken: "",
-			replies: [] as { id: string; content: string }[],
+			replies: [] as {
+				tweetId: string;
+				userId: string;
+				covId: string;
+				content: string;
+			}[],
 		};
 
-		if (!convId) {
-			const tweet = await this.client.tweets.findTweetById(tweetId);
-			this.#handleRespErr(tweet, `failed to find tweet by id: ${tweetId}`);
-			result.conversationId = tweet.data?.conversation_id || "";
-		}
+		// The first tweet's id is also its conversation_id, so no need to get it
+		// if (!convId) {
+		// 	const tweet = await this.client.tweets.findTweetById(tweetId);
+		// 	this.#handleRespErr(tweet, `failed to find tweet by id: ${tweetId}`);
+		// 	result.conversationId = tweet.data?.conversation_id || "";
+		// }
 
 		const resp = await this.client.tweets.tweetsRecentSearch({
-			query: `conversation_id:${convId}`,
+			query: tweetIds.map((id) => `conversation_id:${id}`).join(" OR "),
 			"tweet.fields": [
-				"in_reply_to_user_id",
-				"author_id",
+				"in_reply_to_user_id", // my id
+				"author_id", // user's id
 				"created_at",
 				"conversation_id",
 			],
 			max_results: 100,
 			next_token: nextToken,
 		});
-		this.#handleRespErr(resp, `failed to get replies to tweet: ${tweetId}`);
+		this.#handleRespErr(resp, `failed to get replies of tweets: ${tweetIds}`);
 		result.nextToken = resp.meta?.next_token || "";
 		if (!resp.data) return result;
 
 		for (const tweet of resp.data) {
-			const id = tweet.author_id || "";
-			result.replies.push({ id, content: tweet.text });
+			result.replies.push({
+				tweetId: tweet.id || "",
+				userId: tweet.author_id || "",
+				covId: tweet.conversation_id || "",
+				content: tweet.text,
+			});
 		}
 		return result;
 	}

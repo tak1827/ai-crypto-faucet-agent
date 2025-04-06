@@ -9,6 +9,12 @@ export interface ILLMModel {
 	close(): Promise<void>;
 	embed(_text: string): Promise<readonly number[]>;
 	embedContext(_task: (_embedder: Embedder) => Promise<void>): Promise<void>;
+	infer(query: string, opt?: Record<string, unknown>): Promise<string>;
+	inferStructured<T>(
+		query: string,
+		encode: <T>(response: string) => T,
+		opt?: Record<string, unknown>,
+	): Promise<T>;
 }
 
 export const promptFromTemplate = (

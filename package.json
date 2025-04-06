@@ -4,7 +4,7 @@
 	"type": "module",
 	"license": "MIT",
 	"scripts": {
-		"start": "bun run src/index.ts",
+		"emb": "bun run src/cmd/embedding.ts",
 		"test": "bun test",
 		"fmt": "biome format --write .",
 		"lint": "biome check --write --unsafe .",
@@ -22,13 +22,21 @@
 		"typescript": "^5"
 	},
 	"dependencies": {
+		"@inquirer/prompts": "^7.4.0",
+		"@langchain/community": "^0.3.36",
+		"@langchain/core": "^0.3.42",
+		"@langchain/textsplitters": "^0.1.0",
+		"@types/express": "^5.0.0",
 		"dotenv": "^16.4.7",
 		"ethers": "^6.13.5",
-		"llamaindex": "^0.9.11",
+		"express": "^4.21.2",
+		"langchain": "^0.3.19",
+		"node-llama-cpp": "^3.6.0",
 		"pg": "^8.14.0",
 		"pino": "^9.6.0",
 		"pino-pretty": "^13.0.0",
 		"reflect-metadata": "^0.2.2",
+		"twitter-api-sdk": "^1.2.1",
 		"typeorm": "^0.3.21"
 	}
 }
