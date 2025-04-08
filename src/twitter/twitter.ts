@@ -142,8 +142,14 @@ export class Twitter {
 		return tweets;
 	}
 
-	async createTweet(text: string): Promise<{ id: string; content: string }> {
-		const resp = await this.client.tweets.createTweet({ text });
+	async createTweet(
+		text: string,
+		tweetId?: string,
+	): Promise<{ id: string; content: string }> {
+		const resp = await this.client.tweets.createTweet({
+			text,
+			reply: tweetId ? { in_reply_to_tweet_id: tweetId } : undefined,
+		});
 		this.#handleRespErr(resp, "failed to create tweet");
 		return { id: resp.data?.id || "", content: resp.data?.text || "" };
 	}

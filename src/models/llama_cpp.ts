@@ -50,9 +50,8 @@ export class LLamaCppModel implements ILLMModel {
 			session?: LlamaChatSession;
 		},
 	): Promise<string> {
-		if (!opt || !opt.session)
-			throw new Error("session is required for LlamaCppModel");
-		const result = await opt.session.prompt(query, {
+		const session = opt?.session ? opt.session : this.getSession("");
+		const result = await session.prompt(query, {
 			...this.#defaultPromptOptions,
 			temperature: opt?.temperature,
 			customStopTriggers: opt?.stopText,
@@ -60,6 +59,7 @@ export class LLamaCppModel implements ILLMModel {
 				logger.debug(`prompt chunk: ${text}`);
 			},
 		});
+		if (!opt || !opt.session) session.dispose();
 		return result;
 	}
 

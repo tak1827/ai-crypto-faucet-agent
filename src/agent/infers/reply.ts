@@ -1,4 +1,3 @@
-import { LLamaCppModel } from "../../models/llama_cpp";
 import { type ILLMModel, promptFromTemplate } from "../../models/model";
 
 // Please describe a personality with the traits and influences listed below:
@@ -33,12 +32,6 @@ export const replyInfer = async (
 	personality: string = DEFAULT_PERSONALITY,
 ): Promise<string> => {
 	const opts: any = { temperature: 0.1 };
-
-	// Set session if the model is LLamaCppModel
-	if (model instanceof LLamaCppModel) {
-		opts.session = (model as LLamaCppModel).getSession("");
-	}
-
 	const response = await model.infer(
 		promptFromTemplate(PROMPT_TEMPLATE, {
 			personality,
@@ -48,9 +41,5 @@ export const replyInfer = async (
 		}),
 		opts,
 	);
-
-	// Dispose of the session if it was set
-	if (opts.session) opts.session.dispose();
-
 	return response;
 };
