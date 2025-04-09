@@ -16,7 +16,7 @@ export class ChatHistory {
 	identifier!: string;
 
 	@Column({ type: "varchar", length: 255 })
-	tweetId!: string;
+	externalId!: string; // TweetId
 
 	@Column({ type: "varchar" })
 	content!: string;
@@ -27,9 +27,9 @@ export class ChatHistory {
 	@UpdateDateColumn()
 	updatedAt!: Date;
 
-	constructor(identifier?: string, tweetId?: string, content?: string) {
+	constructor(identifier?: string, externalId?: string, content?: string) {
 		this.identifier = identifier || "";
-		this.tweetId = tweetId || "";
+		this.externalId = externalId || "";
 		this.content = content || "";
 	}
 }
@@ -37,21 +37,35 @@ export class ChatHistory {
 export const getChatHistories = async (
 	db: Database,
 	identifier: string,
+	limit = 100,
 	orderBy: "ASC" | "DESC" = "DESC",
-): Promise<string[]> => {
-	let result: string[] = [];
+): Promise<ChatHistory[]> => {
+	let result = [] as ChatHistory[];
 	await db.makeQuery(async (queryRunner) => {
-		const histories = await queryRunner.manager.find(ChatHistory, {
+		result = await queryRunner.manager.find(ChatHistory, {
 			where: {
 				identifier: identifier,
 			},
+			take: limit,
 			order: {
 				createdAt: orderBy,
 			},
 		});
-		result = histories.map((history) => {
-			return history.content;
+	});
+	return result;
+};
+
+export const getChatHistory = async (
+	db: Database,
+	identifier: string,
+	externalId: string,
+): Promise<ChatHistory | null> => {
+	let result: ChatHistory | null = null;
+	await db.makeQuery(async (queryRunner) => {
+		const history = await queryRunner.manager.findOne(ChatHistory, {
+			where: { identifier, externalId },
 		});
+		result = history;
 	});
 	return result;
 };

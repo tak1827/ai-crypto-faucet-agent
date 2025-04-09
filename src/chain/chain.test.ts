@@ -1,20 +1,16 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { Database } from "../../db/db";
-import { AppDataSource } from "../../db/ormconfig";
-import { AirdropHistory } from "../../entities/airdrop-history";
-import {
-	extractAddresses,
-	provider,
-	sendEth,
-	sumAirDropAmounts,
-} from "./chain";
+import { Database } from "../db/db";
+import { AppDataSource } from "../db/ormconfig";
+import { AirdropHistory } from "../entities/airdrop_history_entity";
+import { Chain } from "./chain";
 
 test("sendEth works", async () => {
 	const to = "0x75fBB5Bd6FDf076Dcaf55243e9E3f3c76F8b5640";
-	await sendEth({ to, amountInEth: "0.1" });
+	const chain = Chain.create();
+	await chain.sendEth(to, "0.1");
 
 	// confirm the balance of to is increased
-	const balance = await provider.getBalance(to);
+	const balance = await chain.provider.getBalance(to);
 	expect(balance).toBeGreaterThan(0);
 });
 
@@ -29,7 +25,7 @@ test("containsAddress works", () => {
 		`${address} World!`,
 	];
 	for (const text of validTexts) {
-		expect(extractAddresses(text)).toEqual([address]);
+		expect(Chain.extractAddresses(text)).toEqual([address]);
 	}
 
 	// Contains two addresses
@@ -40,7 +36,7 @@ test("containsAddress works", () => {
 		`${address} World! ${address}`,
 	];
 	for (const text of validTexts) {
-		expect(extractAddresses(text)).toEqual([address, address]);
+		expect(Chain.extractAddresses(text)).toEqual([address, address]);
 	}
 
 	// Contains no address
@@ -50,7 +46,7 @@ test("containsAddress works", () => {
 		"Hello! 0x75fBB5Bd6FDf076Dcaf55243e9E3f3c76F8b56401 World!",
 	];
 	for (const text of invalidTexts) {
-		expect(extractAddresses(text)).toEqual([]);
+		expect(Chain.extractAddresses(text)).toEqual([]);
 	}
 });
 
@@ -81,12 +77,12 @@ describe("sumAirDropAmounts works", async () => {
 	});
 
 	test("none zero", async () => {
-		const sum = await sumAirDropAmounts(db, identifier);
+		const sum = await Chain.sumAirDropAmounts(db, identifier);
 		expect(sum).toBe(11.1);
 	});
 
 	test("zero", async () => {
-		const sum = await sumAirDropAmounts(db, "non-exist-identifier");
+		const sum = await Chain.sumAirDropAmounts(db, "non-exist-identifier");
 		expect(sum).toBe(0);
 	});
 });
