@@ -5,7 +5,7 @@ import {
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from "typeorm";
-import type { Database } from "../db/db";
+import type { Database } from "../db";
 
 @Entity()
 export class AirdropHistory {
