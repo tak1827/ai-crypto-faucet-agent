@@ -185,18 +185,7 @@ export class Twitter {
 		return { userIds, nextToken };
 	}
 
-	async getTweetReplies(
-		tweetIds: string[],
-		nextToken?: string,
-	): Promise<{
-		nextToken: string;
-		replies: {
-			tweetId: string;
-			userId: string;
-			covId: string;
-			content: string;
-		}[];
-	}> {
+	async getTweetReplies(tweetIds: string[], nextToken?: string): Promise<ResGetTweetReplies> {
 		const result = {
 			nextToken: "",
 			replies: [] as {
@@ -245,3 +234,13 @@ export class Twitter {
 		throw new Error(`${errMsg}. err: ${JSON.stringify(resp.errors)}`);
 	}
 }
+
+export type ResGetTweetReplies = {
+	nextToken: string;
+	replies: {
+		tweetId: string;
+		userId: string;
+		covId: string;
+		content: string;
+	}[];
+};

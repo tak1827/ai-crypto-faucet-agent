@@ -3,6 +3,7 @@ import type { Database } from "../db";
 import type { ILLMModel } from "../models";
 import type { Twitter } from "../twitter";
 import logger from "../utils/logger";
+import type { Memory } from "./memory";
 const WORKFLOW_INTERVAL = 200;
 const MINIMAL_INTERVAL = WORKFLOW_INTERVAL * 2;
 
@@ -18,6 +19,7 @@ export type WorkflowContext = {
 	twitter: Twitter;
 	models: Record<string, ILLMModel>;
 	chain: Chain;
+	memory: Memory;
 	state: WorkflowState;
 };
 

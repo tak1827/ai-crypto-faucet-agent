@@ -26,9 +26,6 @@ export class SNSFollow {
 	@Column({ type: "boolean", default: true })
 	isFollowing!: boolean;
 
-	@Column({ type: "varchar", length: 255 })
-	tweetId!: string;
-
 	@CreateDateColumn()
 	createdAt!: Date;
 

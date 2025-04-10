@@ -31,6 +31,7 @@ export class ChatHistory {
 		this.identifier = identifier || "";
 		this.externalId = externalId || "";
 		this.content = content || "";
+		this.createdAt = new Date();
 	}
 }
 
@@ -66,6 +67,23 @@ export const getChatHistory = async (
 			where: { identifier, externalId },
 		});
 		result = history;
+	});
+	return result;
+};
+
+export const getAllChatHistories = async (
+	db: Database,
+	limit = 100,
+	orderBy: "ASC" | "DESC" = "DESC",
+): Promise<ChatHistory[]> => {
+	let result = [] as ChatHistory[];
+	await db.makeQuery(async (queryRunner) => {
+		result = await queryRunner.manager.find(ChatHistory, {
+			take: limit,
+			order: {
+				createdAt: orderBy,
+			},
+		});
 	});
 	return result;
 };

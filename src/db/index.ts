@@ -50,15 +50,20 @@ export class Database {
 		// Start a new transaction.
 		await this.queryRunner.startTransaction();
 
+		let wrapErr: Error | null = null;
 		try {
 			// Execute the provided task, passing the current query runner.
 			await task(this.queryRunner);
 
 			// If the task completes without errors, commit the transaction.
 			await this.queryRunner.commitTransaction();
-		} catch (error) {
+		} catch (err) {
 			// Log any errors encountered during the task execution.
-			logger.error(error, "Error while saving document");
+			logger.warn(err, "Error while saving");
+
+			wrapErr = new Error(
+				`Error while saving. rollback transaction. ${(err as Error).message}`,
+			);
 
 			// Roll back the transaction in case of an error.
 			await this.queryRunner.rollbackTransaction();
@@ -66,6 +71,7 @@ export class Database {
 			// Release the query runner to free up resources.
 			// await this.queryRunner.release();
 		}
+		if (wrapErr) throw wrapErr;
 	}
 
 	public async saveEntities<Entity>(entities: Entity[]): Promise<void> {

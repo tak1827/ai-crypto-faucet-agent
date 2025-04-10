@@ -10,9 +10,9 @@ import type { ChatHistory } from "./chat_history_entity";
 
 export type Chat = {
 	id: string; // twitter id
+	createdAt: Date;
 	assistant?: string;
 	user?: string;
-	createdAt: Date;
 	[key: string]: any;
 };
 
