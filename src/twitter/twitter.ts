@@ -33,9 +33,7 @@ export class Twitter {
 			this.#bearAuthClient = new auth.OAuth2Bearer(opts.bearerToken);
 			this.client = new Client(this.#bearAuthClient);
 		} else {
-			throw new Error(
-				"set clientId, clientSecret and callbackURL or bearerToken",
-			);
+			throw new Error("set clientId, clientSecret and callbackURL or bearerToken");
 		}
 		if (opts.ownId) {
 			this.#ownId = opts.ownId;
@@ -142,10 +140,7 @@ export class Twitter {
 		return tweets;
 	}
 
-	async createTweet(
-		text: string,
-		tweetId?: string,
-	): Promise<{ id: string; content: string }> {
+	async createTweet(text: string, tweetId?: string): Promise<{ id: string; content: string }> {
 		const resp = await this.client.tweets.createTweet({
 			text,
 			reply: tweetId ? { in_reply_to_tweet_id: tweetId } : undefined,

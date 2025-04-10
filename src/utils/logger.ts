@@ -13,9 +13,7 @@ enum LogLevel {
 
 let loggerInstance: pino.Logger | null = null;
 
-export function logger(
-	level: LogLevel = process.env.LOG_LEVEL as LogLevel,
-): pino.Logger {
+export function logger(level: LogLevel = process.env.LOG_LEVEL as LogLevel): pino.Logger {
 	if (!Object.values(LogLevel).includes(level as LogLevel)) {
 		throw new Error(
 			`Invalid log level: ${level}. Supported levels are: ${Object.values(LogLevel).join(", ")}`,

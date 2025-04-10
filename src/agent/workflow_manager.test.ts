@@ -1,17 +1,13 @@
 import { expect, test } from "bun:test";
 import { sleep } from "../utils/utils";
-import {
-	type WorkflowContext,
-	WorkflowManager,
-	type WorkflowState,
-} from "./workflow_manager";
+import { type WorkflowContext, WorkflowManager, type WorkflowState } from "./workflow_manager";
 
 type CountState = WorkflowState & {
 	name: "count";
 	counter: number;
 };
 
-const countWork = async (ctx: WorkflowContext): Promise<void> => {
+const countWork = async (ctx: WorkflowContext): Promise<Error | void> => {
 	const state = ctx.state as CountState;
 	state.counter += 1;
 };

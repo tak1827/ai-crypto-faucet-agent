@@ -5,7 +5,7 @@ import logger from "../utils/logger";
 const WORKFLOW_INTERVAL = 200;
 const MINIMAL_INTERVAL = WORKFLOW_INTERVAL * 2;
 
-export type Work = (ctx: WorkflowContext) => Promise<void>;
+export type Work = (ctx: WorkflowContext) => Promise<Error | void>;
 
 export type WorkflowState = {
 	name: string;
@@ -60,19 +60,15 @@ export class WorkflowManager {
 					const workflow = this.#workflows[key];
 					// skip if workflow is not set or not expired
 					if (!workflow || Date.now() < workflow.expireAt) continue;
-					await workflow.work(workflow.ctx);
+					const err = await workflow.work(workflow.ctx);
+					if (err) logger.error(err, `Workflow error. name: ${key}`);
 					this.#setExpire(key);
 				}
 			}, WORKFLOW_INTERVAL);
 		});
 	}
 
-	addWorkflow(
-		interval: number,
-		work: Work,
-		ctx: WorkflowContext,
-		name?: string,
-	): void {
+	addWorkflow(interval: number, work: Work, ctx: WorkflowContext, name?: string): void {
 		if (interval < MINIMAL_INTERVAL) {
 			throw new Error(
 				`Interval is too short. interval: ${interval}, minimal: ${MINIMAL_INTERVAL}`,

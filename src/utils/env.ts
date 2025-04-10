@@ -13,10 +13,7 @@ function loadEnv(): () => void {
 
 		// Load .env.local if it exists, then fall back to .env
 		dotenv.config({
-			path: [
-				resolve(process.cwd(), ".env.local"),
-				resolve(process.cwd(), ".env"),
-			],
+			path: [resolve(process.cwd(), ".env.local"), resolve(process.cwd(), ".env")],
 		});
 
 		loaded = true;
@@ -86,8 +83,7 @@ export const Env = {
 	boolean: (envName: string) => getEnv<boolean>(envName, booleanParser),
 	path: (envName: string) => getEnv<string>(envName, pathParser),
 	ethKey: (envName: string) => getEnv<string>(envName, ethKeyParser),
-	contractAddress: (envName: string) =>
-		getEnv<string>(envName, contractAddressParser),
+	contractAddress: (envName: string) => getEnv<string>(envName, contractAddressParser),
 	json: <T>(envName: string) => getEnv<T>(envName, JSON.parse),
 	array: (envName: string, separator = ",") =>
 		getEnv<string[]>(envName, (value) => value.split(separator)),

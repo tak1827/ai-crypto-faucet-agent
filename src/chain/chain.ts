@@ -33,11 +33,7 @@ export class Chain {
 			"function transfer(address to, uint256 amount) public returns (bool)",
 			"function decimals() public view returns (uint8)",
 		];
-		this.contract = new ethers.Contract(
-			opts.erc20Address,
-			erc20Abi,
-			this.wallet,
-		);
+		this.contract = new ethers.Contract(opts.erc20Address, erc20Abi, this.wallet);
 	}
 
 	static create(): Chain {
@@ -64,10 +60,7 @@ export class Chain {
 		return ethAddressRegex.test(text);
 	};
 
-	static async sumAirDropAmounts(
-		db: Database,
-		identifier: string,
-	): Promise<number> {
+	static async sumAirDropAmounts(db: Database, identifier: string): Promise<number> {
 		let sum = 0;
 		await db.makeQuery(async (queryRunner: QueryRunner) => {
 			const histories = await queryRunner.manager.find(AirdropHistory, {
@@ -99,9 +92,7 @@ export class Chain {
 		return this.#handleTxResp(txRespPromise as Promise<TransactionResponse>);
 	}
 
-	async #handleTxResp(
-		txRespPromise: Promise<TransactionResponse>,
-	): Promise<HashOrError> {
+	async #handleTxResp(txRespPromise: Promise<TransactionResponse>): Promise<HashOrError> {
 		const result = {} as HashOrError;
 		try {
 			const txResp = await txRespPromise;

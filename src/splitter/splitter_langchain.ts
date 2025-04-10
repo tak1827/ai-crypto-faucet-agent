@@ -7,12 +7,7 @@ import { TextLoader } from "langchain/document_loaders/fs/text";
 // import { DocxLoader } from '@langchain/community/DocumentLangChain_loaders/fs/docx'
 // import { PPTXLoader } from '@langchain/community/DocumentLangChain_loaders/fs/pptx'
 import logger from "../utils/logger";
-import {
-	Document,
-	type ITextSplitter,
-	excludeBeforeRootPath,
-	loadFiles,
-} from "./splitter";
+import { Document, type ITextSplitter, excludeBeforeRootPath, loadFiles } from "./splitter";
 
 /**
  * Class implementing the ITextSplitter interface using LangChain's text splitting capabilities.
@@ -64,9 +59,7 @@ export class LangChainTextSplitter implements ITextSplitter {
 		for await (const file of files) {
 			fileCount++;
 			for (const fileChunk of file)
-				logger.debug(
-					`Loaded: ${fileChunk.metadata.source}\n\n${fileChunk.pageContent}`,
-				);
+				logger.debug(`Loaded: ${fileChunk.metadata.source}\n\n${fileChunk.pageContent}`);
 
 			// Split DocumentLangChains into chunks
 			const docs: Document[] = [];
@@ -89,20 +82,9 @@ export class LangChainTextSplitter implements ITextSplitter {
 		return LangChainTextSplitter.SUPPORTED_EXTENSIONS;
 	}
 
-	private _createDocument(
-		langchainDoc: DocumentLangChain,
-		rootPath: string,
-	): Document {
-		const filePath = excludeBeforeRootPath(
-			langchainDoc.metadata.source,
-			rootPath,
-		);
+	private _createDocument(langchainDoc: DocumentLangChain, rootPath: string): Document {
+		const filePath = excludeBeforeRootPath(langchainDoc.metadata.source, rootPath);
 		const fileName = basename(filePath);
-		return new Document(
-			langchainDoc.pageContent,
-			fileName,
-			filePath,
-			langchainDoc.metadata,
-		);
+		return new Document(langchainDoc.pageContent, fileName, filePath, langchainDoc.metadata);
 	}
 }

@@ -38,9 +38,7 @@ export const booleanEncoder = <T>(text: string): T => {
 	return (matches[0] === "true") as T;
 };
 
-export const createInitalizedModel = async (
-	modelName: string,
-): Promise<ILLMModel> => {
+export const createInitalizedModel = async (modelName: string): Promise<ILLMModel> => {
 	// Create the model
 	let model: ILLMModel | undefined;
 	if (modelName === "llama3.2") {
@@ -51,9 +49,7 @@ export const createInitalizedModel = async (
 		// const embeddingModelName = modelName.split(':')[1]
 		// model = new OpenAIModel({ apiKey, modelName, embeddingModelName })
 	} else {
-		model = await new LLamaCppModel(
-			resolve(`${Env.path("DIR_MODEL")}/${modelName}`),
-		).init();
+		model = await new LLamaCppModel(resolve(`${Env.path("DIR_MODEL")}/${modelName}`)).init();
 	}
 	if (model === undefined) throw new Error(`model ${modelName} not found`);
 	return model;

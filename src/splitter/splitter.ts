@@ -103,10 +103,7 @@ const isDirectory = (dirPath: string): boolean => {
 	return fs.statSync(dirPath).isDirectory();
 };
 
-export const excludeBeforeRootPath = (
-	filePath: string,
-	rootPath: string,
-): string => {
+export const excludeBeforeRootPath = (filePath: string, rootPath: string): string => {
 	if (!filePath.startsWith(rootPath)) return filePath;
 	const p = filePath.slice(rootPath.length);
 	return p.startsWith("/") || p.startsWith("\\") ? p.slice(1) : p;

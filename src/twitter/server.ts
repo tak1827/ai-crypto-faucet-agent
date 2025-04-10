@@ -34,9 +34,7 @@ export const startServer = (
 		try {
 			const { code, state } = req.query;
 			if (state !== STATE) {
-				const err = new Error(
-					`State isn't matching. expected: ${STATE}, got: ${state}`,
-				);
+				const err = new Error(`State isn't matching. expected: ${STATE}, got: ${state}`);
 				errHandler(err, res);
 				return;
 			}
@@ -88,8 +86,6 @@ export const startServer = (
 			logger.error(err, `Error starting server on port ${port}`);
 			throw err;
 		}
-		logger.info(
-			`Server started! Go here to login: http://127.0.0.1:${port}/login`,
-		);
+		logger.info(`Server started! Go here to login: http://127.0.0.1:${port}/login`);
 	});
 };

@@ -1,9 +1,4 @@
-import type {
-	DataSource,
-	ObjectLiteral,
-	QueryRunner,
-	SelectQueryBuilder,
-} from "typeorm";
+import type { DataSource, ObjectLiteral, QueryRunner, SelectQueryBuilder } from "typeorm";
 import logger from "../utils/logger";
 
 export class Database {
@@ -33,9 +28,7 @@ export class Database {
 		await this.appDataSource.destroy();
 	}
 
-	public async makeQuery(
-		task: (_: QueryRunner) => Promise<void>,
-	): Promise<void> {
+	public async makeQuery(task: (_: QueryRunner) => Promise<void>): Promise<void> {
 		await this.queryRunner.connect();
 		await task(this.queryRunner);
 		// await this.queryRunner.release();
@@ -50,9 +43,7 @@ export class Database {
 	 *
 	 * @param task - An asynchronous function that contains the transactional operations.
 	 */
-	public async makeTransaction(
-		task: (_: QueryRunner) => Promise<void>,
-	): Promise<void> {
+	public async makeTransaction(task: (_: QueryRunner) => Promise<void>): Promise<void> {
 		// Establish a real database connection using the query runner.
 		await this.queryRunner.connect();
 
@@ -114,10 +105,6 @@ export class Database {
       ORDER BY "_distance" ASC
       LIMIT $3;`;
 
-		return await this.appDataSource.query(queryString, [
-			embeddingString,
-			_filter,
-			k,
-		]);
+		return await this.appDataSource.query(queryString, [embeddingString, _filter, k]);
 	}
 }

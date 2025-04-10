@@ -26,23 +26,13 @@ The platform is user-friendly and provides step-by-step instructions for minting
 You require 100 OAS at least to mint a meme coin.
 `;
 
-	const message1 =
-		"I want to mint meme coin, but I don't know how to do it. can you help me?";
-	const reply1 = await replyInfer(
-		model,
-		JSON.stringify(chatHistories),
-		message1,
-		knowledge,
-	);
+	const message1 = "I want to mint meme coin, but I don't know how to do it. can you help me?";
+	const reply1 = await replyInfer(model, JSON.stringify(chatHistories), message1, knowledge);
 	console.log(`Reply: ${reply1}`);
 	expect(reply1).not.toBe("");
 
 	const message2 = "I've minted a meme coin. Can you check my coin?";
-	const reply2 = await replyInfer(
-		model,
-		JSON.stringify(chatHistories),
-		message2,
-	);
+	const reply2 = await replyInfer(model, JSON.stringify(chatHistories), message2);
 	console.log(`Reply: ${reply2}`);
 	expect(reply2).not.toBe("");
 });

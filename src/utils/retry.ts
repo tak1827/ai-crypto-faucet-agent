@@ -12,9 +12,7 @@ const retry = async <T>(
 		const next = leftAttemts - 1;
 		logger.debug(err, `retry failed, ${next} attempts left`);
 		if (leftAttemts <= 0) {
-			throw new Error(
-				`retry failed, no attempts left. err: ${(err as Error).message}`,
-			);
+			throw new Error(`retry failed, no attempts left. err: ${(err as Error).message}`);
 		}
 		if (sleepTime) await sleep(sleepTime);
 		return await retry(next, task);

@@ -3,10 +3,7 @@ import { confirm, input, select } from "@inquirer/prompts";
 import { Database } from "../db/db";
 import { AppDataSource } from "../db/ormconfig";
 import { DocumentChunk } from "../entities/document_chunk_entity";
-import {
-	DocumentCategory,
-	DocumentCore,
-} from "../entities/document_core_entity";
+import { DocumentCategory, DocumentCore } from "../entities/document_core_entity";
 import { createInitalizedModel } from "../models/model";
 import { LangChainTextSplitter } from "../splitter/splitter_langchain";
 import { Env } from "../utils/env";
@@ -106,18 +103,13 @@ async function main() {
 					if (docCore) docChunk.documentCore = docCore;
 					docChunk.chunk = chunk.content.replace(/\0/g, "");
 					docChunk.model = modelName;
-					docChunk.metadata = chunk.metadata
-						? { ...chunk.metadata, category }
-						: { category };
+					docChunk.metadata = chunk.metadata ? { ...chunk.metadata, category } : { category };
 
 					try {
 						const embeds = await embedder(docChunk.chunk);
 						docChunk.embedding = `[${embeds.join(",")}]`;
 					} catch (err) {
-						logger.error(
-							err,
-							`Failed to embed ${i} chunk for document: ${docCore?.fileName}`,
-						);
+						logger.error(err, `Failed to embed ${i} chunk for document: ${docCore?.fileName}`);
 						continue;
 					}
 

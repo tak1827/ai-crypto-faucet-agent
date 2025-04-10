@@ -147,8 +147,7 @@ export class LLamaCppModel implements ILLMModel {
 			throw new Error("Model not initialized");
 		}
 		const context = await this.#model.createEmbeddingContext();
-		const embedder = async (text: string) =>
-			(await context.getEmbeddingFor(text)).vector;
+		const embedder = async (text: string) => (await context.getEmbeddingFor(text)).vector;
 		await task(embedder);
 		context.dispose();
 	}
