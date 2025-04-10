@@ -5,7 +5,7 @@ import logger from "../utils/logger";
 const WORKFLOW_INTERVAL = 200;
 const MINIMAL_INTERVAL = WORKFLOW_INTERVAL * 2;
 
-export type Work = (ctx: WorkflowContext) => Promise<Error | void>;
+export type Work = (ctx: WorkflowContext) => Promise<Error | null>;
 
 export type WorkflowState = {
 	name: string;

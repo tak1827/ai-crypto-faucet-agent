@@ -7,9 +7,10 @@ type CountState = WorkflowState & {
 	counter: number;
 };
 
-const countWork = async (ctx: WorkflowContext): Promise<Error | void> => {
+const countWork = async (ctx: WorkflowContext): Promise<Error | null> => {
 	const state = ctx.state as CountState;
 	state.counter += 1;
+	return null;
 };
 
 test("WorkflowManager works", async () => {
