@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { Twitter } from "./twitter";
+import { Twitter } from ".";
 
 test("Twitter works", async () => {
 	const userId = "1484355185887834112";

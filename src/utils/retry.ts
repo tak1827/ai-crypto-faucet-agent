@@ -1,5 +1,5 @@
 import logger from "./logger";
-import { sleep } from "./utils";
+import { sleep } from "./sleep";
 
 const retry = async <T>(
 	leftAttemts: number,

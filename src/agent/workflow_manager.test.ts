@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { sleep } from "../utils/utils";
+import { sleep } from "../utils/sleep";
 import { type WorkflowContext, WorkflowManager, type WorkflowState } from "./workflow_manager";
 
 type CountState = WorkflowState & {

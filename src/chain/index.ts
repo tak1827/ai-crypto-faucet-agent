@@ -1,6 +1,6 @@
 import { type TransactionResponse, ethers } from "ethers";
 import type { QueryRunner } from "typeorm";
-import type { Database } from "../db/db";
+import type { Database } from "../db";
 import { AirdropHistory } from "../entities/airdrop_history_entity";
 import { Env } from "../utils/env";
 

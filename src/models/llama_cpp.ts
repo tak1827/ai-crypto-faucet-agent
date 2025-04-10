@@ -6,9 +6,9 @@ import {
 	type LlamaModel,
 	getLlama,
 } from "node-llama-cpp";
+import type { Embedder, ILLMModel } from ".";
 import logger from "../utils/logger";
 import retry from "../utils/retry";
-import type { Embedder, ILLMModel } from "./model";
 
 export class LLamaCppModel implements ILLMModel {
 	public modelPath: string;

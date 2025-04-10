@@ -1,4 +1,4 @@
-import { type ILLMModel, promptFromTemplate } from "../../models/model";
+import { type ILLMModel, promptFromTemplate } from "../../models";
 import { DEFAULT_PERSONALITY } from "./common";
 
 const PROMPT_TEMPLATE = `You are a tweet reply assistant. Your job is to craft a concise, context-aware response to a tweet based on the given Personality and Past Conversations.

@@ -1,4 +1,4 @@
-import { type ILLMModel, booleanEncoder, promptFromTemplate } from "../../models/model";
+import { type ILLMModel, booleanEncoder, promptFromTemplate } from "../../models";
 
 const PROMPT_TEMPLATE = `You are an assistant designed to judge whether a user is requesting an airdrop of blockchain gas tokens (e.g., ETH, MATIC, etc.).
 

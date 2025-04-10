@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { Database } from "../db/db";
+import { Chain } from ".";
+import { Database } from "../db";
 import { AppDataSource } from "../db/ormconfig";
 import { AirdropHistory } from "../entities/airdrop_history_entity";
-import { Chain } from "./chain";
 
 test("sendEth works", async () => {
 	const to = "0x75fBB5Bd6FDf076Dcaf55243e9E3f3c76F8b5640";
