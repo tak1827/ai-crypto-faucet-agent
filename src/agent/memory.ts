@@ -21,17 +21,38 @@ export class Memory {
 		return new Memory(db, ownId || Env.string("X_OWN_ID"));
 	}
 
-	async add(userId1: string, userId2: string, content: string, externalId: string) {
-		const chatHistory = new ChatHistory(userId1, externalId, content);
-		const chatGroup = await this.#getChatGroups(userId1 === this.ownId ? userId2 : userId1);
-		chatGroup.addChatHistories(this.ownId, [chatHistory]);
-
+	async add(
+		userId1: string,
+		content: string,
+		externalId: string,
+		opts?: { userId2?: string; referenceId?: string },
+	): Promise<void> {
+		const chatHistory = opts?.referenceId
+			? new ChatHistory(userId1, externalId, content, opts.referenceId)
+			: new ChatHistory(userId1, externalId, content);
 		this.#changes.set(externalId, chatHistory);
-		this.#changes.set(chatGroup.groupId, chatGroup);
+
+		if (opts?.userId2) {
+			const chatGroup = await this.#getChatGroups([userId1, opts.userId2]);
+			chatGroup.addChatHistories(this.ownId, [chatHistory]);
+			this.#changes.set(chatGroup.groupId, chatGroup);
+		}
 	}
 
-	async getLLMChatHistories(userId: string, limit = 8): Promise<LLMChat[]> {
-		const chatGroup = await this.#getChatGroups(userId);
+	addChatHistories(userId: string, chatHistories: ChatHistory[]) {
+		const chatGroup = this.#chatGroups.get(userId);
+		if (chatGroup) {
+			chatGroup.addChatHistories(this.ownId, chatHistories);
+			this.#changes.set(chatGroup.groupId, chatGroup);
+		} else {
+			const newChatGroup = new ChatGroup(userId);
+			newChatGroup.addChatHistories(this.ownId, chatHistories);
+			this.#changes.set(userId, newChatGroup);
+		}
+	}
+
+	async getLLMChatHistories(userIds: string[], limit = 8): Promise<LLMChat[]> {
+		const chatGroup = await this.#getChatGroups(userIds);
 		return chatGroup.getLLMChatHistories(limit);
 	}
 
@@ -41,22 +62,17 @@ export class Memory {
 		this.#changes.clear();
 	}
 
-	#gId(userId: string): string {
-		return ChatGroup.groupIdFromUserIds([this.ownId, userId]);
-	}
-
-	async #getChatGroups(userId: string): Promise<ChatGroup> {
-		const gId = this.#gId(userId);
-		let chatGroup = this.#chatGroups.get(gId);
+	async #getChatGroups(userIds: string[]): Promise<ChatGroup> {
+		const groupId = ChatGroup.groupIdFromUserIds(userIds);
+		let chatGroup = this.#chatGroups.get(groupId);
 		if (chatGroup) {
 			// Found in memory
 			return chatGroup;
 		}
 
 		// Not found in memory, so fetch from DB, otherwise create a new one
-		chatGroup =
-			(await getChatGroupByUserId(this.#db, [this.ownId, userId])) || new ChatGroup(gId);
-		this.#chatGroups.set(gId, chatGroup);
+		chatGroup = (await getChatGroupByUserId(this.#db, userIds)) || new ChatGroup(groupId);
+		this.#chatGroups.set(groupId, chatGroup);
 		return chatGroup;
 	}
 }

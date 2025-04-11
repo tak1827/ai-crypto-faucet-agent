@@ -92,13 +92,13 @@ export class Database {
 		}
 	}
 
-	async cosineSimilaritySearchVector<T>(
+	async vectorSearch<T = any>(
 		tableName: string,
 		vectorColumnName: string,
 		query: readonly number[],
-		whereQuery?: string,
-		filter?: Record<string, any>,
 		k = 3,
+		filter?: { [key: string]: any },
+		whereQuery?: string,
 	): Promise<T> {
 		const embeddingString = `[${query.join(",")}]`;
 		const _whereQuery = whereQuery ? `AND ${whereQuery}` : "";

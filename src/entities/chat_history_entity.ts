@@ -18,6 +18,9 @@ export class ChatHistory {
 	@Column({ type: "varchar", length: 255 })
 	externalId!: string; // TweetId
 
+	@Column({ type: "varchar", length: 255, nullable: true })
+	referenceId?: string; // conversation id
+
 	@Column({ type: "varchar" })
 	content!: string;
 
@@ -27,10 +30,16 @@ export class ChatHistory {
 	@UpdateDateColumn()
 	updatedAt!: Date;
 
-	constructor(identifier?: string, externalId?: string, content?: string) {
+	constructor(
+		identifier?: string,
+		externalId?: string,
+		content?: string,
+		referenceId?: string,
+	) {
 		this.identifier = identifier || "";
 		this.externalId = externalId || "";
 		this.content = content || "";
+		if (referenceId) this.referenceId = referenceId;
 		this.createdAt = new Date();
 	}
 }
@@ -84,6 +93,20 @@ export const getAllChatHistories = async (
 				createdAt: orderBy,
 			},
 		});
+	});
+	return result;
+};
+
+export const getChatHistoryByRefId = async (
+	db: Database,
+	referenceId: string,
+): Promise<ChatHistory | null> => {
+	let result: ChatHistory | null = null;
+	await db.makeQuery(async (queryRunner) => {
+		const history = await queryRunner.manager.findOne(ChatHistory, {
+			where: { referenceId },
+		});
+		result = history;
 	});
 	return result;
 };

@@ -12,27 +12,12 @@ import {
 } from "../../entities";
 import { LLamaCppModel } from "../../models/llama_cpp";
 import type { ResGetTweetReplies, Twitter } from "../../twitter";
+import { mockTwitter } from "../../twitter/mock";
 import { Memory } from "../memory";
 import type { WorkflowContext } from "../workflow_manager";
-import { AirdropWork } from "./airdrop_work";
+import { airdropWork } from "./airdrop_work";
 
 const modelPath = "./data/models/gemma-3-4b-it-Q4_K_M.gguf";
-
-class mockTwitter {
-	#resGetTweetReplies: ResGetTweetReplies | undefined;
-	#createTweetCounter = 0;
-	setResGetTweetReplies(res: ResGetTweetReplies) {
-		this.#resGetTweetReplies = res;
-	}
-	async createTweet(text: string, covId: string): Promise<{ id: string }> {
-		this.#createTweetCounter++;
-		return { id: `mock-tweet-${this.#createTweetCounter}` };
-	}
-	async getTweetReplies(tweetIds: string[], nextToken?: string): Promise<ResGetTweetReplies> {
-		if (!this.#resGetTweetReplies) throw new Error("getTweetReplies not set");
-		return this.#resGetTweetReplies;
-	}
-}
 
 describe("workflow: airdrop", async () => {
 	const ownId = "111111";
@@ -117,14 +102,14 @@ describe("workflow: airdrop", async () => {
 		});
 	});
 
-	test("AirdropWork works", async () => {
-		const err = await AirdropWork(ctx);
+	test("airdropWork works", async () => {
+		const err = await airdropWork(ctx);
 		expect(err).toBeNull();
 
 		const airdops = await getAirdropHistories(db, userId);
 		console.log("airdrops", airdops);
 		expect(airdops.length).toBe(1);
-		const llmChats = await memory.getLLMChatHistories(userId);
+		const llmChats = await memory.getLLMChatHistories([ownId, userId]);
 		console.log("llmChats", llmChats);
 		expect(llmChats.length).toBe(3 + 2 * 2);
 		const histories = await getAllChatHistories(db);

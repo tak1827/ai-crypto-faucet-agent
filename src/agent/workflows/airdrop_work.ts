@@ -8,7 +8,7 @@ import { judgeRequestingAirdropInfer } from "../infers/judge_request_airdrop";
 import { replyInfer } from "../infers/reply";
 import { replyAirdropInfer } from "../infers/reply_airdrop";
 import type { WorkflowContext, WorkflowState } from "../workflow_manager";
-import { validateStateName } from "./common";
+import { handleErrors, validateStateName } from "./common";
 
 export type AirdropState = WorkflowState & {
 	name: "airdrop";
@@ -17,7 +17,7 @@ export type AirdropState = WorkflowState & {
 	amount: string; // Amount of airdrop in ETH
 };
 
-export const AirdropWork = async (ctx: WorkflowContext): Promise<Error | null> => {
+export const airdropWork = async (ctx: WorkflowContext): Promise<Error | null> => {
 	validateStateName(ctx.state, "airdrop");
 
 	const state = ctx.state as AirdropState;
@@ -27,11 +27,13 @@ export const AirdropWork = async (ctx: WorkflowContext): Promise<Error | null> =
 
 	for (const r of newReplies) {
 		try {
-			const chatHistories = JSON.stringify(await ctx.memory.getLLMChatHistories(r.userId));
+			const chatHistories = JSON.stringify(
+				await ctx.memory.getLLMChatHistories([ctx.memory.ownId, r.userId]),
+			);
 			let assistantRely: string;
 
 			// Add the new reply to memory
-			await ctx.memory.add(r.userId, ctx.memory.ownId, r.content, r.tweetId);
+			await ctx.memory.add(r.userId, r.content, r.tweetId, { userId2: ctx.memory.ownId });
 
 			if (await isAirdrop(model, r.content)) {
 				// User requesting airdrop, so try to airdrop
@@ -45,22 +47,18 @@ export const AirdropWork = async (ctx: WorkflowContext): Promise<Error | null> =
 			const { id } = await ctx.twitter.createTweet(assistantRely, r.covId);
 
 			// Add assistant reply to memory
-			await ctx.memory.add(ctx.memory.ownId, r.userId, assistantRely, id);
+			await ctx.memory.add(ctx.memory.ownId, assistantRely, id, { userId2: r.userId });
 
 			// Save ChatHistory and ChatGroup
 			await ctx.memory.commit();
 		} catch (err) {
-			logger.warn(err, "Error while handling reply");
+			logger.warn(err, "Error in airdrop work");
 			const errMsg = `${(err as Error).message} userId: ${r.userId}, tweetId: ${r.tweetId}, message: ${r.content}`;
 			errs.push(new Error(errMsg));
 		}
 	}
 
-	if (errs.length > 0) {
-		const errMsg = `${errs.length} errors occurred while handling replies: ${errs.map((err) => err.message).join(", ")}`;
-		return new Error(errMsg);
-	}
-	return null;
+	return handleErrors("airdrop", errs);
 };
 
 const getNewReplies = async (
