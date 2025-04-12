@@ -2,6 +2,7 @@ import {
 	Column,
 	CreateDateColumn,
 	Entity,
+	IsNull,
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from "typeorm";
@@ -47,15 +48,18 @@ export class ChatHistory {
 export const getChatHistories = async (
 	db: Database,
 	identifier: string,
+	referenceId: string | null | undefined = undefined,
 	limit = 100,
 	orderBy: "ASC" | "DESC" = "DESC",
 ): Promise<ChatHistory[]> => {
+	const where: any = { identifier };
+	if (referenceId === null) where.referenceId = IsNull();
+	else if (referenceId) where.referenceId = referenceId;
+
 	let result = [] as ChatHistory[];
 	await db.makeQuery(async (queryRunner) => {
 		result = await queryRunner.manager.find(ChatHistory, {
-			where: {
-				identifier: identifier,
-			},
+			where,
 			take: limit,
 			order: {
 				createdAt: orderBy,

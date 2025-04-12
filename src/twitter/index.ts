@@ -10,7 +10,7 @@ export class Twitter {
 	#port = 3000;
 	#server: Server | undefined;
 	#tokenRefreshTimeout: NodeJS.Timer | undefined;
-	#ownId: string | undefined;
+	ownId: string | undefined;
 	client: Client;
 
 	constructor(opts: {
@@ -36,7 +36,7 @@ export class Twitter {
 			throw new Error("set clientId, clientSecret and callbackURL or bearerToken");
 		}
 		if (opts.ownId) {
-			this.#ownId = opts.ownId;
+			this.ownId = opts.ownId;
 		}
 		if (opts.port) {
 			this.#port = opts.port;
@@ -110,13 +110,6 @@ export class Twitter {
 				}
 			}, 1000);
 		});
-	}
-
-	getOwnId(): string {
-		if (!this.#ownId) {
-			throw new Error("User id is not set");
-		}
-		return this.#ownId;
 	}
 
 	async getTweets(

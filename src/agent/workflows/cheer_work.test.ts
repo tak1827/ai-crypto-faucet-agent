@@ -1,13 +1,11 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { Chain } from "../../chain";
 import { Database } from "../../db";
 import { AppDataSource } from "../../db/ormconfig";
 import { ChatHistory, getAllChatHistories } from "../../entities";
 import { LLamaCppModel } from "../../models/llama_cpp";
-import type { ResGetTweetReplies, Twitter } from "../../twitter";
+import type { Twitter } from "../../twitter";
 import { mockTwitter } from "../../twitter/mock";
 import { Memory } from "../memory";
-import type { WorkflowContext } from "../workflow_manager";
 import { cheerWork } from "./cheer_work";
 
 const modelPath = "./data/models/gemma-3-4b-it-Q4_K_M.gguf";
@@ -15,16 +13,14 @@ const modelPath = "./data/models/gemma-3-4b-it-Q4_K_M.gguf";
 describe("workflow: cheer", async () => {
 	const ownId = "111111";
 	const followingIds = ["following-1", "following-2"];
-	const chain = Chain.create();
 	const db = await new Database(AppDataSource).init();
 	const model = await new LLamaCppModel(modelPath).init();
 	const memory = Memory.create(db, ownId);
 	const twitter: any = new mockTwitter();
-	const ctx: WorkflowContext = {
+	const ctx: any = {
 		db,
 		twitter: twitter as Twitter,
 		models: { cheer: model, embed: model },
-		chain,
 		memory,
 		state: {
 			name: "cheer",

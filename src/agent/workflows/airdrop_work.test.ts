@@ -11,7 +11,7 @@ import {
 	getAllChatHistories,
 } from "../../entities";
 import { LLamaCppModel } from "../../models/llama_cpp";
-import type { ResGetTweetReplies, Twitter } from "../../twitter";
+import type { Twitter } from "../../twitter";
 import { mockTwitter } from "../../twitter/mock";
 import { Memory } from "../memory";
 import type { WorkflowContext } from "../workflow_manager";
@@ -70,6 +70,7 @@ describe("workflow: airdrop", async () => {
 				"Yukichi is now ready, let's go!, reply me if you want to airdrop",
 			),
 			new ChatHistory(ownId, "tweet3", "I'm Oasys faucet, please reply me with your address"),
+			new ChatHistory(ownId, "tweet4", "test message", "tweet1"),
 			new ChatGroup(ChatGroup.groupIdFromUserIds([ownId, userId]), chats),
 			new SNSFollow(userId),
 		]);
@@ -114,6 +115,6 @@ describe("workflow: airdrop", async () => {
 		expect(llmChats.length).toBe(3 + 2 * 2);
 		const histories = await getAllChatHistories(db);
 		console.log("histories", histories);
-		expect(histories.length).toBe(3 + 2 * 2);
+		expect(histories.length).toBe(4 + 2 * 2);
 	});
 });

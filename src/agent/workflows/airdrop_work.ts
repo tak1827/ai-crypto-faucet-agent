@@ -33,7 +33,10 @@ export const airdropWork = async (ctx: WorkflowContext): Promise<Error | null> =
 			let assistantRely: string;
 
 			// Add the new reply to memory
-			await ctx.memory.add(r.userId, r.content, r.tweetId, { userId2: ctx.memory.ownId });
+			await ctx.memory.add(r.userId, r.content, r.tweetId, {
+				userId2: ctx.memory.ownId,
+				referenceId: r.covId,
+			});
 
 			if (await isAirdrop(model, r.content)) {
 				// User requesting airdrop, so try to airdrop
@@ -47,7 +50,10 @@ export const airdropWork = async (ctx: WorkflowContext): Promise<Error | null> =
 			const { id } = await ctx.twitter.createTweet(assistantRely, r.covId);
 
 			// Add assistant reply to memory
-			await ctx.memory.add(ctx.memory.ownId, assistantRely, id, { userId2: r.userId });
+			await ctx.memory.add(ctx.memory.ownId, assistantRely, id, {
+				userId2: r.userId,
+				referenceId: r.covId,
+			});
 
 			// Save ChatHistory and ChatGroup
 			await ctx.memory.commit();
@@ -67,7 +73,7 @@ const getNewReplies = async (
 	limit: number,
 ): Promise<{ tweetId: string; userId: string; covId: string; content: string }[]> => {
 	// get own tweets
-	const ownTweets = await getChatHistories(ctx.db, ownId, limit);
+	const ownTweets = await getChatHistories(ctx.db, ownId, null, limit);
 	// get replies of own tweets
 	const replies = await ctx.twitter.getTweetReplies(ownTweets.map((tweet) => tweet.externalId));
 	// kick off already handled replies
