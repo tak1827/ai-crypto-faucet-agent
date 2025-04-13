@@ -25,7 +25,6 @@ async function main() {
 	manager.addWorkflow(airdropWorkInterval, airdropWork, ctxAirdrop, "airdrop-work");
 
 	await manager.start();
-	await manager.close();
 }
 
 main().catch((err) => logger.error(err));
