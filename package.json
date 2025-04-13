@@ -5,7 +5,7 @@
 	"license": "MIT",
 	"scripts": {
 		"emb": "bun run src/cmd/embedding.ts",
-		"test": "bun test",
+		"test": "NODE_ENV=test bun test",
 		"fmt": "biome format --write .",
 		"lint": "biome check --write --unsafe .",
 		"typeorm:base": "bun run --bun typeorm -d ./src/db/ormconfig.ts",

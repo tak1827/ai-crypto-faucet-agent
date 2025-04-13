@@ -1,13 +1,23 @@
 import { getChatHistories } from "../../entities";
 import type { ILLMModel } from "../../models";
+import { Env } from "../../utils/env";
 import logger from "../../utils/logger";
 import { instructedPostInfer } from "../infers/post_instruction";
-import type { WorkflowContext, WorkflowState } from "../workflow_manager";
+import type { BaseWorkflowContext, WorkflowContext, WorkflowState } from "../workflow_manager";
 import { handleErrors, lookupKnowledge, validateStateName } from "./common";
 
-export type CheerState = WorkflowState & {
+export type PostState = WorkflowState & {
 	name: "post";
 	instructions: string[];
+};
+
+export const createPostCtx = (baseCtx: BaseWorkflowContext): WorkflowContext => {
+	const state: PostState = {
+		name: "post",
+		instructions: Env.array("WORKFLOW_POST_INSTRUCTIONS"),
+	};
+	baseCtx.models[state.name] = baseCtx.models.common;
+	return { ...baseCtx, state };
 };
 
 export const postWork = async (ctx: WorkflowContext): Promise<Error | null> => {

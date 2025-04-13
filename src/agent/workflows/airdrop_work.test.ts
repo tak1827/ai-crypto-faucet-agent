@@ -1,6 +1,4 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { Chain } from "../../chain";
-import { Database } from "../../db";
 import { AppDataSource } from "../../db/ormconfig";
 import {
 	AirdropHistory,
@@ -10,30 +8,15 @@ import {
 	getAirdropHistories,
 	getAllChatHistories,
 } from "../../entities";
-import { LLamaCppModel } from "../../models/llama_cpp";
-import type { Twitter } from "../../twitter";
-import { mockTwitter } from "../../twitter/mock";
-import { Memory } from "../memory";
-import type { WorkflowContext } from "../workflow_manager";
+import type { mockTwitter } from "../../twitter/mock";
+import { createBaseCtx } from "../workflow_manager";
 import { airdropWork } from "./airdrop_work";
 
-const modelPath = "./data/models/gemma-3-4b-it-Q4_K_M.gguf";
-
 describe("workflow: airdrop", async () => {
-	const ownId = "111111";
-	const userId = "222222";
-	const addr = "0x75fBB5Bd6FDf076Dcaf55243e9E3f3c76F8b5640";
-	const chain = Chain.create();
-	const db = await new Database(AppDataSource).init();
-	const model = await new LLamaCppModel(modelPath).init();
-	const memory = Memory.create(db, ownId);
-	const twitter: any = new mockTwitter();
-	const ctx: WorkflowContext = {
-		db,
-		twitter: twitter as Twitter,
-		models: { airdrop: model },
-		chain,
-		memory,
+	const baseCtx = await createBaseCtx(true, true);
+	baseCtx.models.airdrop = baseCtx.models.common;
+	const ctx: any = {
+		...baseCtx,
 		state: {
 			name: "airdrop",
 			recentPost: 2,
@@ -41,6 +24,12 @@ describe("workflow: airdrop", async () => {
 			amount: "3",
 		},
 	};
+	const db = baseCtx.db;
+	const twitter = baseCtx.twitter as any as mockTwitter;
+	const ownId = baseCtx.twitter.ownId || "111111";
+	const memory = baseCtx.memory;
+	const userId = "222222";
+	const addr = "0x75fBB5Bd6FDf076Dcaf55243e9E3f3c76F8b5640";
 
 	beforeAll(async () => {
 		const chats = [

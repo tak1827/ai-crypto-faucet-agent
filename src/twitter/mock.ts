@@ -1,6 +1,7 @@
 import type { ResGetTweetReplies } from "./index";
 
 export class mockTwitter {
+	ownId = "mock-own-id";
 	#createTweetCounter = 0;
 	async createTweet(text: string, covId: string): Promise<{ id: string }> {
 		this.#createTweetCounter++;

@@ -1,13 +1,23 @@
 import { getChatHistoryByRefId } from "../../entities";
 import type { ILLMModel } from "../../models";
+import { Env } from "../../utils/env";
 import logger from "../../utils/logger";
 import { replyCheer } from "../infers/cheer";
-import type { WorkflowContext, WorkflowState } from "../workflow_manager";
+import type { BaseWorkflowContext, WorkflowContext, WorkflowState } from "../workflow_manager";
 import { handleErrors, lookupKnowledge, validateStateName } from "./common";
 
 export type CheerState = WorkflowState & {
 	name: "cheer";
 	followingIds: string[];
+};
+
+export const createCheerCtx = (baseCtx: BaseWorkflowContext): WorkflowContext => {
+	const state: CheerState = {
+		name: "cheer",
+		followingIds: Env.array("WORKFLOW_FOLLOWING_IDS"),
+	};
+	baseCtx.models[state.name] = baseCtx.models.common;
+	return { ...baseCtx, state };
 };
 
 export const cheerWork = async (ctx: WorkflowContext): Promise<Error | null> => {

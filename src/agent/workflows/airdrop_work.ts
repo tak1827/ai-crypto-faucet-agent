@@ -3,11 +3,12 @@ import { AirdropHistory, getAirdropHistories } from "../../entities/airdrop_hist
 import { getChatHistories, getChatHistory } from "../../entities/chat_history_entity";
 import { isFollowingSNS } from "../../entities/sns_follow_entity";
 import type { ILLMModel } from "../../models";
+import { Env } from "../../utils/env";
 import logger from "../../utils/logger";
 import { judgeRequestingAirdropInfer } from "../infers/judge_request_airdrop";
 import { replyInfer } from "../infers/reply";
 import { replyAirdropInfer } from "../infers/reply_airdrop";
-import type { WorkflowContext, WorkflowState } from "../workflow_manager";
+import type { BaseWorkflowContext, WorkflowContext, WorkflowState } from "../workflow_manager";
 import { handleErrors, validateStateName } from "./common";
 
 export type AirdropState = WorkflowState & {
@@ -15,6 +16,17 @@ export type AirdropState = WorkflowState & {
 	recentPost: number;
 	exploreURL: string;
 	amount: string; // Amount of airdrop in ETH
+};
+
+export const createAirdropCtx = (baseCtx: BaseWorkflowContext): WorkflowContext => {
+	const state: AirdropState = {
+		name: "airdrop",
+		recentPost: Env.number("WORKFLOW_RECENT_POST"),
+		exploreURL: Env.string("WORKFLOW_EXPLORE_URL"),
+		amount: Env.string("WORKFLOW_AIRDROP_AMOUNT"),
+	};
+	baseCtx.models[state.name] = baseCtx.models.common;
+	return { ...baseCtx, state };
 };
 
 export const airdropWork = async (ctx: WorkflowContext): Promise<Error | null> => {

@@ -1,9 +1,13 @@
-import type { Chain } from "../chain";
-import type { Database } from "../db";
+import { Chain } from "../chain";
+import { Database } from "../db";
+import { AppDataSource } from "../db/ormconfig";
 import type { ILLMModel } from "../models";
-import type { Twitter } from "../twitter";
+import { LLamaCppModel } from "../models/llama_cpp";
+import { Twitter } from "../twitter";
+import { mockTwitter } from "../twitter/mock";
+import { Env } from "../utils/env";
 import logger from "../utils/logger";
-import type { Memory } from "./memory";
+import { Memory } from "./memory";
 const WORKFLOW_INTERVAL = 200;
 const MINIMAL_INTERVAL = WORKFLOW_INTERVAL * 2;
 
@@ -17,11 +21,13 @@ export type WorkflowState = {
 export type WorkflowContext = {
 	db: Database;
 	twitter: Twitter;
-	models: Record<string, ILLMModel>;
+	models: { common: ILLMModel; embed: ILLMModel } & Record<string, ILLMModel>;
 	chain: Chain;
 	memory: Memory;
 	state: WorkflowState;
 };
+
+export type BaseWorkflowContext = Omit<WorkflowContext, "state">;
 
 export class WorkflowManager {
 	#workflows: Record<
@@ -116,3 +122,24 @@ export class WorkflowManager {
 		}
 	}
 }
+
+export const createBaseCtx = async (
+	isTest?: boolean,
+	noEmbed?: boolean,
+): Promise<BaseWorkflowContext> => {
+	const db = await new Database(AppDataSource).init();
+	const twitter = isTest ? new mockTwitter() : Twitter.create();
+	const model = await new LLamaCppModel(Env.path("WORKFLOW_MODEL_PATH")).init();
+	const emodel = noEmbed
+		? model
+		: await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")).init();
+	const chain = Chain.create();
+	const memory = Memory.create(db, twitter.ownId);
+	return {
+		db,
+		models: { common: model, embed: emodel },
+		twitter: twitter as Twitter,
+		chain,
+		memory,
+	};
+};

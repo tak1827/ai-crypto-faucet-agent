@@ -1,27 +1,14 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { Database } from "../../db";
 import { AppDataSource } from "../../db/ormconfig";
 import { ChatHistory, getAllChatHistories } from "../../entities";
-import { LLamaCppModel } from "../../models/llama_cpp";
-import type { Twitter } from "../../twitter";
-import { mockTwitter } from "../../twitter/mock";
-import { Memory } from "../memory";
-import type { WorkflowContext } from "../workflow_manager";
+import { createBaseCtx } from "../workflow_manager";
 import { postWork } from "./post_work";
 
-const modelPath = "./data/models/gemma-3-4b-it-Q4_K_M.gguf";
-
 describe("workflow: post", async () => {
-	const ownId = "111111";
-	const db = await new Database(AppDataSource).init();
-	const model = await new LLamaCppModel(modelPath).init();
-	const memory = Memory.create(db, ownId);
-	const twitter: any = new mockTwitter();
+	const baseCtx = await createBaseCtx(true, true);
+	baseCtx.models.post = baseCtx.models.common;
 	const ctx: any = {
-		db,
-		twitter: twitter as Twitter,
-		models: { post: model, embed: model },
-		memory,
+		...baseCtx,
 		state: {
 			name: "post",
 			instructions: [
@@ -30,6 +17,8 @@ describe("workflow: post", async () => {
 			],
 		},
 	};
+	const db = baseCtx.db;
+	const ownId = baseCtx.twitter.ownId;
 
 	beforeAll(async () => {
 		await db.saveEntities([
