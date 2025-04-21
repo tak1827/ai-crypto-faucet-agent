@@ -7,7 +7,7 @@ import { TextLoader } from "langchain/document_loaders/fs/text";
 // import { DocxLoader } from '@langchain/community/DocumentLangChain_loaders/fs/docx'
 // import { PPTXLoader } from '@langchain/community/DocumentLangChain_loaders/fs/pptx'
 import logger from "../utils/logger";
-import { Document, type ITextSplitter, excludeBeforeRootPath, loadFiles } from "./splitter";
+import { Document, type ITextSplitter, excludeBeforeRootPath, loadFiles } from "./index";
 
 /**
  * Class implementing the ITextSplitter interface using LangChain's text splitting capabilities.
@@ -16,6 +16,7 @@ export class LangChainTextSplitter implements ITextSplitter {
 	private readonly loaders: LoadersMapping = {
 		".md": (file) => new TextLoader(file),
 		".pdf": (file) => new PDFLoader(file),
+		".txt": (file) => new TextLoader(file),
 		// '.docx': file => new DocxLoader(file),
 		// '.pptx': file => new PPTXLoader(file),
 	};
@@ -27,6 +28,7 @@ export class LangChainTextSplitter implements ITextSplitter {
 	private static readonly SUPPORTED_EXTENSIONS = [
 		".md",
 		".pdf",
+		".txt",
 		// '.xlsx'
 	];
 

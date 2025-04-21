@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { basename } from "node:path";
 import {
 	type LLamaChatPromptOptions,
 	LlamaChatSession,
@@ -20,9 +21,11 @@ export class LLamaCppModel implements ILLMModel {
 		trimWhitespaceSuffix: true,
 		stopOnAbortSignal: true,
 	};
+	#modelName: string;
 
 	constructor(modelPath: string) {
 		this.modelPath = this._validateModelPath(modelPath);
+		this.#modelName = basename(modelPath);
 		this.#abortController = new AbortController();
 	}
 
@@ -31,6 +34,10 @@ export class LLamaCppModel implements ILLMModel {
 		this.#model = await llama.loadModel({ modelPath: this.modelPath });
 		this.#context = await this.#model.createContext();
 		return this;
+	}
+
+	public name(): string {
+		return this.#modelName;
 	}
 
 	public getSession(systemPrompt: string): LlamaChatSession {

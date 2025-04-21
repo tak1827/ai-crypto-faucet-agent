@@ -21,19 +21,6 @@ async function main() {
 	const path = resolve(directoryInput);
 	validatePath(path);
 
-	// Choose which model to use
-	const modelName = await select({
-		message: "Which model would you like to use?",
-		choices: [
-			{ name: "Qwen2-B1.5-Q8", value: "gte-Qwen2-1.5B-instruct.q8.gguf" },
-			{
-				name: "OpenAI: text-embedding-3-small",
-				value: "openai:text-embedding-3-small",
-			},
-		],
-		default: "qwen2-1.5b-q8",
-	});
-
 	// Choose the category
 	const category = await select({
 		message: "Which category would you like to use?",
@@ -49,7 +36,7 @@ async function main() {
 		default: true,
 	});
 
-	const model = await createInitalizedModel(modelName);
+	const model = await createInitalizedModel();
 
 	const spliter = new LangChainTextSplitter();
 	const chunkSize = Env.number("SPLITTER_CHUNK_SIZE");
@@ -102,11 +89,12 @@ async function main() {
 					const docChunk = new DocumentChunk();
 					if (docCore) docChunk.documentCore = docCore;
 					docChunk.chunk = chunk.content.replace(/\0/g, "");
-					docChunk.model = modelName;
+					docChunk.model = model.name();
 					docChunk.metadata = chunk.metadata ? { ...chunk.metadata, category } : { category };
 
 					try {
-						const embeds = await embedder(docChunk.chunk);
+						const text = `FileName: ${docCore.fileName}\nContent: ${chunk.content}`;
+						const embeds = await embedder(text);
 						docChunk.embedding = `[${embeds.join(",")}]`;
 					} catch (err) {
 						logger.error(err, `Failed to embed ${i} chunk for document: ${docCore?.fileName}`);
