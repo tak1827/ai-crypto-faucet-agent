@@ -29,6 +29,9 @@ export class ChatGroup {
 	@Column({ type: "jsonb" })
 	chats!: Chat[];
 
+	@Column({ type: "text", nullable: true })
+	summary?: string;
+
 	@CreateDateColumn()
 	createdAt!: Date;
 

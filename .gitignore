@@ -148,3 +148,7 @@ data/models/*
 # Embeddings sources
 data/docs/*
 !data/docs/.gitkeep
+
+# SQL dump files
+data/sql/dumps/*
+!data/sql/dumps/.gitkeep
