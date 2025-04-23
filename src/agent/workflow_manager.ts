@@ -32,7 +32,7 @@ export type BaseWorkflowContext = Omit<WorkflowContext, "state">;
 export class WorkflowManager {
 	#workflows: Record<
 		string,
-		{ work: Work; interval: number; ctx: WorkflowContext; expireAt: number }
+		{ work: Work; interval: number; ctx: WorkflowContext; expireAt: number; running: boolean }
 	> = {};
 	#interval: NodeJS.Timer | undefined;
 	#running = false;
@@ -68,11 +68,13 @@ export class WorkflowManager {
 				// Iterate through all workflows
 				for (const key in this.#workflows) {
 					const workflow = this.#workflows[key];
-					// skip if workflow is not set or not expired
-					if (!workflow || Date.now() < workflow.expireAt) continue;
+					// skip if workflow is not set or not expired or already running
+					if (!workflow || Date.now() < workflow.expireAt || workflow.running) continue;
+					this.#setRunning(key, true);
 					const err = await workflow.work(workflow.ctx);
 					if (err) logger.error(err, `Workflow error. name: ${key}`);
 					this.#setExpire(key);
+					this.#setRunning(key, false);
 				}
 			}, WORKFLOW_INTERVAL);
 		});
@@ -88,7 +90,7 @@ export class WorkflowManager {
 			throw new Error(`Workflow already exists. name: ${ctx.state.name}`);
 		}
 		const key = name || ctx.state.name;
-		this.#workflows[key] = { work, interval, ctx, expireAt: 0 };
+		this.#workflows[key] = { work, interval, ctx, expireAt: 0, running: false };
 	}
 
 	removeWorkflow(name: string): WorkflowState {
@@ -120,6 +122,11 @@ export class WorkflowManager {
 		for (const key in this.#workflows) {
 			this.#setExpire(key, now);
 		}
+	}
+
+	#setRunning(key: string, running: boolean) {
+		if (!this.#workflows[key]) return;
+		this.#workflows[key].running = running;
 	}
 }
 
