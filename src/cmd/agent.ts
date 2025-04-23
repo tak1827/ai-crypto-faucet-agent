@@ -10,19 +10,25 @@ async function main() {
 	const baseCtx = await createBaseCtx();
 
 	// Register cheer workflow
-	const ctxCheer = createCheerCtx(baseCtx);
-	const cheerWorkInterval = Env.number("WORKFLOW_INTERVAL_CHEER");
-	manager.addWorkflow(cheerWorkInterval, cheerWork, ctxCheer, "cheer-work");
+	if (Env.boolean("WORKFLOW_ENABLE_CHEER")) {
+		const ctxCheer = createCheerCtx(baseCtx);
+		const cheerWorkInterval = Env.number("WORKFLOW_INTERVAL_CHEER");
+		manager.addWorkflow(cheerWorkInterval, cheerWork, ctxCheer, "cheer-work");
+	}
 
 	// Register post workflow
-	const ctxPost = createPostCtx(baseCtx);
-	const postWorkInterval = Env.number("WORKFLOW_INTERVAL_POST");
-	manager.addWorkflow(postWorkInterval, postWork, ctxPost, "post-work");
+	if (Env.boolean("WORKFLOW_ENABLE_POST")) {
+		const ctxPost = createPostCtx(baseCtx);
+		const postWorkInterval = Env.number("WORKFLOW_INTERVAL_POST");
+		manager.addWorkflow(postWorkInterval, postWork, ctxPost, "post-work");
+	}
 
 	// Register airdrop workflow
-	const ctxAirdrop = createAirdropCtx(baseCtx);
-	const airdropWorkInterval = Env.number("WORKFLOW_INTERVAL_AIRDROP");
-	manager.addWorkflow(airdropWorkInterval, airdropWork, ctxAirdrop, "airdrop-work");
+	if (Env.boolean("WORKFLOW_ENABLE_AIRDROP")) {
+		const ctxAirdrop = createAirdropCtx(baseCtx);
+		const airdropWorkInterval = Env.number("WORKFLOW_INTERVAL_AIRDROP");
+		manager.addWorkflow(airdropWorkInterval, airdropWork, ctxAirdrop, "airdrop-work");
+	}
 
 	await manager.start();
 }
