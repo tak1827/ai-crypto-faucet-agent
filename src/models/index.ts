@@ -52,3 +52,7 @@ export const createInitalizedModel = async (modelName?: string): Promise<ILLMMod
 	if (model === undefined) throw new Error(`model ${modelName} not found`);
 	return model;
 };
+
+export const createInitalizedEmbModel = async (): Promise<ILLMModel> => {
+	return await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")).init();
+};

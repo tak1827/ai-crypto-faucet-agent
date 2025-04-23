@@ -91,6 +91,11 @@ export class WorkflowManager {
 		}
 		const key = name || ctx.state.name;
 		this.#workflows[key] = { work, interval, ctx, expireAt: 0, running: false };
+		logger.info(
+			`Workflow added. name: ${key}, interval: ${interval}, state: ${JSON.stringify(
+				ctx.state,
+			)}`,
+		);
 	}
 
 	removeWorkflow(name: string): WorkflowState {
