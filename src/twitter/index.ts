@@ -1,5 +1,6 @@
 import type { Server } from "node:http";
 import { Client, auth } from "twitter-api-sdk";
+import type { TwitterResponse, usersIdRetweets } from "twitter-api-sdk/dist/types";
 import { Env } from "../utils/env";
 import logger from "../utils/logger";
 import { startServer } from "./server";
@@ -116,13 +117,14 @@ export class Twitter {
 		userId: string,
 		opts?: { maxResults?: number; sinceId?: string; startTime?: string },
 	): Promise<{ id: string; content: string }[]> {
-		const resp = await this.client.tweets.usersIdTweets(userId, {
+		const pages = this.client.tweets.usersIdTweets(userId, {
 			exclude: ["replies", "retweets"],
 			max_results: opts?.maxResults,
 			since_id: opts?.sinceId,
 			start_time: opts?.startTime,
 		});
-		console.log(resp);
+		const firstPage = await this.#handleRatelimit(() => pages[Symbol.asyncIterator]().next());
+		const resp = firstPage.value;
 		this.#handleRespErr(resp, `failed to get tweets by user id: ${userId}`);
 		if (!resp.data) return [];
 
@@ -134,26 +136,32 @@ export class Twitter {
 	}
 
 	async createTweet(text: string, tweetId?: string): Promise<{ id: string; content: string }> {
-		const resp = await this.client.tweets.createTweet({
-			text,
-			reply: tweetId ? { in_reply_to_tweet_id: tweetId } : undefined,
-		});
+		const resp = await this.#handleRatelimit(() =>
+			this.client.tweets.createTweet({
+				text,
+				reply: tweetId ? { in_reply_to_tweet_id: tweetId } : undefined,
+			}),
+		);
 		this.#handleRespErr(resp, "failed to create tweet");
 		return { id: resp.data?.id || "", content: resp.data?.text || "" };
 	}
 
 	async likeTweet(userId: string, tweetId: string): Promise<boolean> {
-		const resp = await this.client.tweets.usersIdLike(userId, {
-			tweet_id: tweetId,
-		});
+		const resp = await this.#handleRatelimit(() =>
+			this.client.tweets.usersIdLike(userId, {
+				tweet_id: tweetId,
+			}),
+		);
 		this.#handleRespErr(resp, `failed to like tweet. userId: ${userId}`);
 		return resp.data?.liked || false;
 	}
 
 	async retweet(userId: string, tweetId: string): Promise<boolean> {
-		const resp = await this.client.tweets.usersIdRetweets(userId, {
-			tweet_id: tweetId,
-		});
+		const resp = await this.#handleRatelimit<TwitterResponse<usersIdRetweets>>(() =>
+			this.client.tweets.usersIdRetweets(userId, {
+				tweet_id: tweetId,
+			}),
+		);
 		this.#handleRespErr(resp, `failed to retweet tweet. userId: ${userId}`);
 		return resp.data?.retweeted || false;
 	}
@@ -162,10 +170,12 @@ export class Twitter {
 		userId: string,
 		paginationToken?: string,
 	): Promise<{ userIds: string[]; nextToken: string }> {
-		const resp = await this.client.users.usersIdFollowers(userId, {
+		const pages = this.client.users.usersIdFollowers(userId, {
 			max_results: 100,
 			pagination_token: paginationToken,
 		});
+		const firstPage = await this.#handleRatelimit(() => pages[Symbol.asyncIterator]().next());
+		const resp = firstPage.value;
 		this.#handleRespErr(resp, `failed to list followers. userId: ${userId}`);
 
 		const userIds: string[] = [];
@@ -196,7 +206,7 @@ export class Twitter {
 		// 	result.conversationId = tweet.data?.conversation_id || "";
 		// }
 
-		const resp = await this.client.tweets.tweetsRecentSearch({
+		const pages = this.client.tweets.tweetsRecentSearch({
 			query: tweetIds.map((id) => `conversation_id:${id}`).join(" OR "),
 			"tweet.fields": [
 				"in_reply_to_user_id", // my id
@@ -207,6 +217,8 @@ export class Twitter {
 			max_results: 100,
 			next_token: nextToken,
 		});
+		const firstPage = await this.#handleRatelimit(() => pages[Symbol.asyncIterator]().next());
+		const resp = firstPage.value;
 		this.#handleRespErr(resp, `failed to get replies of tweets: ${tweetIds}`);
 		result.nextToken = resp.meta?.next_token || "";
 		if (!resp.data) return result;
@@ -225,6 +237,35 @@ export class Twitter {
 	#handleRespErr(resp: { errors?: any }, errMsg: string) {
 		if (!resp.errors) return;
 		throw new Error(`${errMsg}. err: ${JSON.stringify(resp.errors)}`);
+	}
+
+	async #handleRatelimit<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
+		let attempt = 0;
+		while (attempt < maxRetries) {
+			try {
+				return await fn();
+			} catch (error: any) {
+				// Check for rate limit error (HTTP 429)
+				if (error.response && error.response.status === 429) {
+					const resetHeader = error.response.headers.get("x-rate-limit-reset");
+					if (resetHeader) {
+						const resetTime = Number(resetHeader) * 1000; // Convert to ms
+						const waitTime = resetTime - Date.now();
+						if (waitTime > 0) {
+							logger.info(
+								`x api rate limit hit. Waiting for ${Math.ceil(waitTime / 1000)} seconds.`,
+							);
+							await new Promise((resolve) => setTimeout(resolve, waitTime));
+							attempt++;
+							continue;
+						}
+					}
+				}
+				// For other errors or if no reset header, rethrow
+				throw error;
+			}
+		}
+		throw new Error(`max retries reached for ${fn.name}, maxRetries: ${maxRetries}`);
 	}
 }
 
