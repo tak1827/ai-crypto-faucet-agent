@@ -9,6 +9,7 @@ import { startServer } from "./server";
 export class Twitter {
 	#authClient: auth.OAuth2User | undefined;
 	#bearAuthClient: auth.OAuth2Bearer | undefined;
+	#host = "127.0.0.1";
 	#port = 3000;
 	#server: Server | undefined;
 	#tokenRefreshTimeout: NodeJS.Timer | undefined;
@@ -21,6 +22,7 @@ export class Twitter {
 		clientSecret?: string;
 		callbackURL?: string;
 		ownId?: string;
+		host?: string;
 		port?: number;
 	}) {
 		if (opts.clientId && opts.clientSecret && opts.callbackURL) {
@@ -38,26 +40,26 @@ export class Twitter {
 		} else {
 			throw new Error("set clientId, clientSecret and callbackURL or bearerToken");
 		}
-		if (opts.ownId) {
-			this.ownId = opts.ownId;
-		}
-		if (opts.port) {
-			this.#port = opts.port;
-		}
+		if (opts.ownId) this.ownId = opts.ownId;
+		if (opts.host) this.#host = opts.host;
+		if (opts.port) this.#port = opts.port;
 	}
 
-	static create(port?: number): Twitter {
+	static create(): Twitter {
 		const bearerToken = Env.string("X_BEARER_TOKEN");
 		const clientId = Env.string("X_CLIENT_ID");
 		const clientSecret = Env.string("X_CLIENT_SECRET");
 		const callbackURL = Env.string("X_CALLBACK_URL");
 		const ownId = Env.string("X_OWN_ID");
+		const host = Env.string("X_SERVER_HOST");
+		const port = Env.number("X_SERVER_PORT");
 		return new Twitter({
 			bearerToken,
 			clientId,
 			clientSecret,
 			callbackURL,
 			ownId,
+			host,
 			port,
 		});
 	}
@@ -66,7 +68,7 @@ export class Twitter {
 		if (!this.#authClient) {
 			throw new Error("Auth client is not initialized");
 		}
-		this.#server = startServer(this.#port, this.#authClient, (id: Timer) => {
+		this.#server = startServer(this.#host, this.#port, this.#authClient, (id: Timer) => {
 			this.#tokenRefreshTimeout = id;
 		});
 	}

@@ -6,6 +6,7 @@ import logger from "../utils/logger";
 import { type Token, oauthFilePath } from "./index";
 
 export const startServer = (
+	host: string,
 	port: number,
 	authClient: auth.OAuth2User,
 	setRefreshTimeoutId: (id: Timer) => void,
@@ -88,11 +89,11 @@ export const startServer = (
 	// 	res.json({ access_token, refresh_token, expires_at });
 	// })
 
-	return app.listen(port, (err) => {
+	return app.listen(port, host, (err) => {
 		if (err) {
-			logger.error(err, `Error starting server on port ${port}`);
+			logger.error(err, `Error starting server on port ${port}, host ${host}`);
 			throw err;
 		}
-		logger.info(`twitter server started! Go here to login: http://127.0.0.1:${port}/login`);
+		logger.info(`twitter server started! Go here to login: http://${host}:${port}/login`);
 	});
 };
