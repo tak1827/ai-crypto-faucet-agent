@@ -93,6 +93,6 @@ export const startServer = (
 			logger.error(err, `Error starting server on port ${port}`);
 			throw err;
 		}
-		logger.info(`Server started! Go here to login: http://127.0.0.1:${port}/login`);
+		logger.info(`twitter server started! Go here to login: http://127.0.0.1:${port}/login`);
 	});
 };
