@@ -1,7 +1,9 @@
 import type { Server } from "node:http";
 import express from "express";
 import type { auth } from "twitter-api-sdk";
+import { writeToFile } from "../utils/file";
 import logger from "../utils/logger";
+import { type Token, oauthFilePath } from "./index";
 
 export const startServer = (
 	port: number,
@@ -28,6 +30,7 @@ export const startServer = (
 		}, timeoutAt);
 		setRefreshTimeoutId(timeout);
 	};
+	const writeOAuthToFile = (token: Token) => writeToFile(oauthFilePath(), token);
 
 	app.get("/callback", async (req, res): Promise<void> => {
 		logger.info("/callback called");
@@ -39,6 +42,7 @@ export const startServer = (
 				return;
 			}
 			const { token } = await authClient.requestAccessToken(code as string);
+			writeOAuthToFile(token);
 			if (token.expires_at) refleshTokenBeforeExpire(token.expires_at);
 			const { access_token, refresh_token, expires_at } = token;
 			res.json({ access_token, refresh_token, expires_at });

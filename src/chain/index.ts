@@ -3,6 +3,7 @@ import type { QueryRunner } from "typeorm";
 import type { Database } from "../db";
 import { AirdropHistory } from "../entities/airdrop_history_entity";
 import { Env } from "../utils/env";
+import logger from "../utils/logger";
 
 export type HashOrError = {
 	hash?: string;
@@ -24,9 +25,8 @@ export class Chain {
 		this.#blockConfirmations = opts.blockConfirmations;
 		this.provider = new ethers.JsonRpcProvider(opts.rpcUrl);
 		this.provider.getBlockNumber().catch((error) => {
-			throw new Error(
-				`Chain RPC is not reachable. rpcUrl: ${opts.rpcUrl}, err: ${error.message}`,
-			);
+			logger.error(`Chain RPC is not reachable. rpcUrl: ${opts.rpcUrl}, err: ${error.message}`);
+			this.provider.destroy();
 		});
 		this.wallet = new ethers.Wallet(opts.privateKey, this.provider);
 		const erc20Abi = [

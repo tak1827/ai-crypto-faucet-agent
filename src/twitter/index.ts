@@ -2,6 +2,7 @@ import type { Server } from "node:http";
 import { Client, auth } from "twitter-api-sdk";
 import type { TwitterResponse, usersIdRetweets } from "twitter-api-sdk/dist/types";
 import { Env } from "../utils/env";
+import { readFromFile } from "../utils/file";
 import logger from "../utils/logger";
 import { startServer } from "./server";
 
@@ -28,6 +29,7 @@ export class Twitter {
 				client_secret: opts.clientSecret,
 				callback: opts.callbackURL,
 				scopes: ["tweet.read", "tweet.write", "users.read", "offline.access"],
+				token: this.#readOAuthTokenFromFile(), // Read token from file if exists
 			});
 			this.client = new Client(this.#authClient);
 		} else if (opts.bearerToken) {
@@ -76,10 +78,10 @@ export class Twitter {
 		}
 		if (this.#server) {
 			const waitClosed = new Promise<void>((resolve) => {
-				logger.info(`closing server on port ${this.#port}`);
+				logger.info(`closing twitter server on port ${this.#port}`);
 				this.#server?.close((err?: Error) => {
-					if (err) logger.error(err, "Server close with error");
-					else logger.info("Server closed");
+					if (err) logger.error(err, "twitter server close with error");
+					else logger.info("twitter server closed");
 					resolve();
 				});
 			});
@@ -267,7 +269,15 @@ export class Twitter {
 		}
 		throw new Error(`max retries reached for ${fn.name}, maxRetries: ${maxRetries}`);
 	}
+
+	#readOAuthTokenFromFile(): Token | undefined {
+		const token = readFromFile<Token>(oauthFilePath());
+		if (token?.expires_at && token.expires_at > Date.now()) return token;
+		return undefined;
+	}
 }
+
+export const oauthFilePath = () => `${Env.path("DIR_TWITTER")}/oauth.json`;
 
 export type ResGetTweetReplies = {
 	nextToken: string;
@@ -277,4 +287,16 @@ export type ResGetTweetReplies = {
 		covId: string;
 		content: string;
 	}[];
+};
+
+// Copied from twitter-api-sdk
+export type Token = {
+	/** Allows an application to obtain a new access token without prompting the user via the refresh token flow. */
+	refresh_token?: string;
+	/** Access tokens are the token that applications use to make API requests on behalf of a user.  */
+	access_token?: string;
+	token_type?: string;
+	/** Comma-separated list of scopes for the token  */
+	scope?: string;
+	expires_at?: number;
 };

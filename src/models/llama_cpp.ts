@@ -163,6 +163,7 @@ export class LLamaCppModel implements ILLMModel {
 		this.#abortController.abort();
 		if (this.#context) await this.#context.dispose();
 		if (this.#model) await this.#model.dispose();
+		logger.info(`closed model: ${this.#modelName}`);
 	}
 
 	private _validateModelPath(modelPath: string): string {

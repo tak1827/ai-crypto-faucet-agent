@@ -1,4 +1,4 @@
-import { WorkflowManager, createBaseCtx } from "../agent/workflow_manager";
+import { WorkflowManager, closeBaseCtx, createBaseCtx } from "../agent/workflow_manager";
 import { airdropWork, createAirdropCtx } from "../agent/workflows/airdrop_work";
 import { cheerWork, createCheerCtx } from "../agent/workflows/cheer_work";
 import { createPostCtx, postWork } from "../agent/workflows/post_work";
@@ -30,7 +30,9 @@ async function main() {
 		manager.addWorkflow(airdropWorkInterval, airdropWork, ctxAirdrop, "airdrop-work");
 	}
 
+	baseCtx.twitter.startOAuthServer();
 	await manager.start();
+	await closeBaseCtx(baseCtx);
 }
 
 main().catch((err) => logger.error(err));

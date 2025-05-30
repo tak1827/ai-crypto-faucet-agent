@@ -152,3 +152,7 @@ data/docs/*
 # SQL dump files
 data/sql/dumps/*
 !data/sql/dumps/.gitkeep
+
+# Twitter data
+data/twitter/*
+!data/twitter/.gitkeep

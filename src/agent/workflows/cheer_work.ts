@@ -30,13 +30,16 @@ export const cheerWork = async (ctx: WorkflowContext): Promise<Error | null> => 
 		try {
 			// Get the new tweets from the following ID
 			const tweets = await filterNewTweet(ctx, followingId);
+			logger.info(`Cheering ${tweets.length} new tweets from ${followingId}`);
 
 			for (const tweet of tweets) {
 				// Like the tweet
 				await ctx.twitter.likeTweet(followingId, tweet.id);
+				logger.info(`Liked tweet ${tweet.id} from ${followingId}`);
 
 				// Cheer the tweet by replying
-				await cheeringReply(ctx, tweet);
+				const { content } = await cheeringReply(ctx, tweet);
+				logger.info(`Replied to tweet ${tweet.id} with content: ${content}`);
 			}
 
 			// Save ChatHistory

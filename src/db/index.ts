@@ -26,6 +26,7 @@ export class Database {
 	public async close(): Promise<void> {
 		await this.queryRunner.release();
 		await this.appDataSource.destroy();
+		logger.info("database connection closed");
 	}
 
 	public async makeQuery(task: (_: QueryRunner) => Promise<void>): Promise<void> {
