@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import { resolve } from "node:path";
 import { DataSource } from "typeorm";
 import { Env } from "../utils/env";
 import logger from "../utils/logger";
@@ -16,7 +17,7 @@ export const AppDataSource = new DataSource({
 	database,
 	synchronize: false,
 	logging: false,
-	entities: ["src/**/entities/*.ts"],
+	entities: [resolve(__dirname, "../**/entities/*.ts")],
 	migrations: ["src/**/migrations/*.ts"],
 	subscribers: [],
 });
