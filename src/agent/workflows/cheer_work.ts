@@ -34,7 +34,7 @@ export const cheerWork = async (ctx: WorkflowContext): Promise<Error | null> => 
 
 			for (const tweet of tweets) {
 				// Like the tweet
-				await ctx.twitter.likeTweet(followingId, tweet.id);
+				await ctx.twitter.likeTweet(tweet.id);
 				logger.info(`Liked tweet ${tweet.id} from ${followingId}`);
 
 				// Cheer the tweet by replying

@@ -141,10 +141,10 @@ export const createBaseCtx = async (
 ): Promise<BaseWorkflowContext> => {
 	const db = await new Database(AppDataSource).init();
 	const twitter = isTest ? new mockTwitter() : Twitter.create();
-	const model = await new LLamaCppModel(Env.path("WORKFLOW_MODEL_PATH")); //.init();
+	const model = await new LLamaCppModel(Env.path("WORKFLOW_MODEL_PATH")).init();
 	const emodel = noEmbed
 		? model
-		: await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")); //.init();
+		: await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")).init();
 	const chain = Chain.create();
 	const memory = Memory.create(db, twitter.ownId);
 	return {

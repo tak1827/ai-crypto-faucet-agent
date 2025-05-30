@@ -30,7 +30,10 @@ export const startServer = (
 		}, timeoutAt);
 		setRefreshTimeoutId(timeout);
 	};
-	const writeOAuthToFile = (token: Token) => writeToFile(oauthFilePath(), token);
+	const writeOAuthToFile = (token: Token) => {
+		logger.info(`OAuth token write to file: ${JSON.stringify(token)}`);
+		writeToFile(oauthFilePath(), token);
+	};
 
 	app.get("/callback", async (req, res): Promise<void> => {
 		logger.info("/callback called");
@@ -59,7 +62,7 @@ export const startServer = (
 			state: STATE,
 			code_challenge_method: "s256",
 		});
-		logger.debug(`X Auth URL: ${authUrl}`);
+		// logger.debug(`X Auth URL: ${authUrl}`);
 		res.redirect(authUrl);
 	});
 

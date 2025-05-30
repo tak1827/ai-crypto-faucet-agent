@@ -28,7 +28,7 @@ export class Twitter {
 				client_id: opts.clientId,
 				client_secret: opts.clientSecret,
 				callback: opts.callbackURL,
-				scopes: ["tweet.read", "tweet.write", "users.read", "offline.access"],
+				scopes: ["tweet.read", "tweet.write", "like.write", "users.read", "offline.access"],
 				token: this.#readOAuthTokenFromFile(), // Read token from file if exists
 			});
 			this.client = new Client(this.#authClient);
@@ -121,7 +121,7 @@ export class Twitter {
 	): Promise<{ id: string; content: string }[]> {
 		const pages = this.client.tweets.usersIdTweets(userId, {
 			exclude: ["replies", "retweets"],
-			max_results: opts?.maxResults,
+			max_results: opts?.maxResults || 5, // between 5 and 100
 			since_id: opts?.sinceId,
 			start_time: opts?.startTime,
 		});
@@ -148,13 +148,14 @@ export class Twitter {
 		return { id: resp.data?.id || "", content: resp.data?.text || "" };
 	}
 
-	async likeTweet(userId: string, tweetId: string): Promise<boolean> {
+	async likeTweet(tweetId: string): Promise<boolean> {
+		if (!this.ownId) throw new Error("ownId is not set, cannot like tweet");
 		const resp = await this.#handleRatelimit(() =>
-			this.client.tweets.usersIdLike(userId, {
+			this.client.tweets.usersIdLike(this.ownId || "", {
 				tweet_id: tweetId,
 			}),
 		);
-		this.#handleRespErr(resp, `failed to like tweet. userId: ${userId}`);
+		this.#handleRespErr(resp, `failed to like tweet. tweetId: ${tweetId}`);
 		return resp.data?.liked || false;
 	}
 
@@ -272,7 +273,10 @@ export class Twitter {
 
 	#readOAuthTokenFromFile(): Token | undefined {
 		const token = readFromFile<Token>(oauthFilePath());
-		if (token?.expires_at && token.expires_at > Date.now()) return token;
+		if (token?.expires_at && token.expires_at > Date.now()) {
+			logger.info(`OAuth token read from file: ${JSON.stringify(token)}`);
+			return token;
+		}
 		return undefined;
 	}
 }
