@@ -1,4 +1,5 @@
 import type { Server } from "node:http";
+import { resolve } from "node:path";
 import { Client, auth } from "twitter-api-sdk";
 import type { TwitterResponse, usersIdRetweets } from "twitter-api-sdk/dist/types";
 import { Env } from "../utils/env";
@@ -284,7 +285,7 @@ export class Twitter {
 	}
 }
 
-export const oauthFilePath = () => `${Env.path("DIR_TWITTER")}/oauth.json`;
+export const oauthFilePath = () => resolve(Env.path("DIR_TWITTER"), "oauth.json");
 
 export type ResGetTweetReplies = {
 	nextToken: string;

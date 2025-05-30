@@ -11,10 +11,9 @@ function loadEnv(): () => void {
 	return (): void => {
 		if (loaded) return;
 
-		// Load .env.local if it exists, then fall back to .env
-		dotenv.config({
-			path: [resolve(process.cwd(), ".env.local"), resolve(process.cwd(), ".env")],
-		});
+		const paths = [resolve(process.cwd(), ".env.local"), resolve(process.cwd(), ".env")];
+		if (process.env.AI_AGENT_ENV_PATH) paths.push(process.env.AI_AGENT_ENV_PATH); // For server
+		dotenv.config({ path: paths });
 
 		loaded = true;
 	};
