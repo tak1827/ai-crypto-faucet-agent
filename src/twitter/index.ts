@@ -119,6 +119,7 @@ export class Twitter {
 		});
 	}
 
+	// 5 requests / 15 mins PER USER 10 requests / 15 mins PER APP
 	async getTweets(
 		userId: string,
 		opts?: { maxResults?: number; sinceId?: string; startTime?: string },
@@ -141,6 +142,7 @@ export class Twitter {
 		return tweets;
 	}
 
+	// 100 requests / 24 hours PER USER 1667 requests / 24 hours PER APP
 	async createTweet(text: string, tweetId?: string): Promise<{ id: string; content: string }> {
 		const resp = await this.#handleRatelimit(() =>
 			this.client.tweets.createTweet({
@@ -152,6 +154,7 @@ export class Twitter {
 		return { id: resp.data?.id || "", content: resp.data?.text || "" };
 	}
 
+	// 100 requests / 24 hours PER USER
 	async likeTweet(tweetId: string): Promise<boolean> {
 		if (!this.ownId) throw new Error("ownId is not set, cannot like tweet");
 		const resp = await this.#handleRatelimit(() =>
@@ -163,6 +166,7 @@ export class Twitter {
 		return resp.data?.liked || false;
 	}
 
+	// 5 requests / 15 mins PER USER
 	async retweet(userId: string, tweetId: string): Promise<boolean> {
 		const resp = await this.#handleRatelimit<TwitterResponse<usersIdRetweets>>(() =>
 			this.client.tweets.usersIdRetweets(userId, {
@@ -173,6 +177,7 @@ export class Twitter {
 		return resp.data?.retweeted || false;
 	}
 
+	// NOTE: mistake in `usersIdFollowing`?
 	async listFollowers(
 		userId: string,
 		paginationToken?: string,
@@ -195,6 +200,7 @@ export class Twitter {
 		return { userIds, nextToken };
 	}
 
+	// 60 requests / 15 mins PER USER 60 requests / 15 mins PER APP
 	async getTweetReplies(tweetIds: string[], nextToken?: string): Promise<ResGetTweetReplies> {
 		const result = {
 			nextToken: "",
@@ -251,10 +257,10 @@ export class Twitter {
 		while (attempt < maxRetries) {
 			try {
 				return await fn();
-			} catch (error: any) {
+			} catch (err: any) {
 				// Check for rate limit error (HTTP 429)
-				if (error.response && error.response.status === 429) {
-					const resetHeader = error.response.headers.get("x-rate-limit-reset");
+				if (err.status && err.status === 429) {
+					const resetHeader = err.headers["x-rate-limit-reset"];
 					if (resetHeader) {
 						const resetTime = Number(resetHeader) * 1000; // Convert to ms
 						const waitTime = resetTime - Date.now();
@@ -269,7 +275,7 @@ export class Twitter {
 					}
 				}
 				// For other errors or if no reset header, rethrow
-				throw error;
+				throw err;
 			}
 		}
 		throw new Error(`max retries reached for ${fn.name}, maxRetries: ${maxRetries}`);

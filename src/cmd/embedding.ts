@@ -61,7 +61,7 @@ async function main() {
 
 				const firstChunk = splittedFile[0];
 				logger.info(
-					`Successfully split documents into ${splittedFile.length} chunks. Title: ${firstChunk.filePath}`,
+					`Successfully split docs into ${splittedFile.length} chunks. Title: ${firstChunk.filePath}`,
 				);
 
 				// Find document by filePath
