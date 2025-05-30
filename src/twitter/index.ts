@@ -64,13 +64,14 @@ export class Twitter {
 		});
 	}
 
-	startOAuthServer() {
+	startOAuthServer(): Twitter {
 		if (!this.#authClient) {
 			throw new Error("Auth client is not initialized");
 		}
 		this.#server = startServer(this.#host, this.#port, this.#authClient, (id: Timer) => {
 			this.#tokenRefreshTimeout = id;
 		});
+		return this;
 	}
 
 	async close() {

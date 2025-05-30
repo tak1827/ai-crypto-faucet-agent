@@ -140,7 +140,7 @@ export const createBaseCtx = async (
 	noEmbed?: boolean,
 ): Promise<BaseWorkflowContext> => {
 	const db = await new Database(AppDataSource).init();
-	const twitter = isTest ? new mockTwitter() : Twitter.create();
+	const twitter = isTest ? new mockTwitter() : Twitter.create().startOAuthServer();
 	const model = await new LLamaCppModel(Env.path("WORKFLOW_MODEL_PATH")).init();
 	const emodel = noEmbed
 		? model

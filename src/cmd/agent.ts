@@ -30,7 +30,6 @@ async function main() {
 		manager.addWorkflow(airdropWorkInterval, airdropWork, ctxAirdrop, "airdrop-work");
 	}
 
-	baseCtx.twitter.startOAuthServer();
 	await manager.start();
 	await closeBaseCtx(baseCtx);
 }
