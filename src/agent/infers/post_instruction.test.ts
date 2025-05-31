@@ -35,7 +35,7 @@ You require 100 OAS at least to mint a meme coin.
 		instruction1,
 		knowledge,
 	);
-	console.log(`Reply: ${post1}`);
+	console.log(post1);
 	expect(post1).not.toBe("");
 
 	const instruction2 =
@@ -46,6 +46,6 @@ You require 100 OAS at least to mint a meme coin.
 		instruction2,
 		knowledge,
 	);
-	console.log(`Reply: ${post2}`);
+	console.log(post2);
 	expect(post2).not.toBe("");
 });

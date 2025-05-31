@@ -1,3 +1,4 @@
+import { log } from "node:console";
 import { getChatHistories } from "../../entities";
 import type { ILLMModel } from "../../models";
 import { Env } from "../../utils/env";
@@ -27,12 +28,14 @@ export const postWork = async (ctx: WorkflowContext): Promise<Error | null> => {
 
 	// Iterate through the following IDs
 	for (const instruction of ctx.state.instructions) {
+		logger.info(`Post work for instruction: ${instruction.substring(0, 10)}...`);
 		try {
 			// get own tweets
 			const ownHistories = await getOwnHistories(ctx);
 
 			// Post the tweet
-			await postTweet(ctx, instruction, ownHistories);
+			const { content } = await postTweet(ctx, instruction, ownHistories);
+			logger.info(`Posted own tweet: ${content}`);
 
 			// Save ChatHistory
 			await ctx.memory.commit();

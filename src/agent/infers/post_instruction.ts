@@ -16,8 +16,7 @@ Past Posts: <<-chat_history->>
 Create a tweet that strictly follows the following instruction:
 Instruction: <<-instruction->>
 
-Just respond with the tweet content only.
-Your tweet:`;
+Okay, here is a tweet post that you can use:`;
 
 export const instructedPostInfer = async (
 	model: ILLMModel,

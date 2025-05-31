@@ -55,7 +55,7 @@ describe("workflow: post", async () => {
 		expect(err).toBeNull();
 
 		const histories = await getAllChatHistories(db);
-		console.log("histories", histories);
+		// console.log("histories", histories);
 		expect(histories.length).toBe(5 + 2); // 2 original + 2 new
 	});
 });
