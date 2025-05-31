@@ -77,9 +77,9 @@ export class Twitter {
 		});
 	}
 
-	setTokenRefreshTimeoutId(id: Timer) {
+	setTokenRefreshTimeoutId = (id: Timer) => {
 		this.#tokenRefreshTimeout = id;
-	}
+	};
 
 	startOAuthServer(): Twitter {
 		if (!this.#authClient) {
