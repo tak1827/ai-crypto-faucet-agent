@@ -7,6 +7,8 @@ import { instructedPostInfer } from "../infers/post_instruction";
 import type { BaseWorkflowContext, WorkflowContext, WorkflowState } from "../workflow_manager";
 import { handleErrors, lookupKnowledge, validateStateName } from "./common";
 
+const MAXTWEET_LENGTH = 280;
+
 export type PostState = WorkflowState & {
 	name: "post";
 	instructions: string[];
@@ -27,6 +29,7 @@ export const postWork = async (ctx: WorkflowContext): Promise<Error | null> => {
 	const errs: Error[] = [];
 
 	// Iterate through the following IDs
+	let successCounter = 0;
 	for (const instruction of ctx.state.instructions) {
 		logger.info(`Post work for instruction: ${instruction.substring(0, 10)}...`);
 		try {
@@ -36,6 +39,7 @@ export const postWork = async (ctx: WorkflowContext): Promise<Error | null> => {
 			// Post the tweet
 			const { content } = await postTweet(ctx, instruction, ownHistories);
 			logger.info(`Posted own tweet: ${content}`);
+			successCounter++;
 
 			// Save ChatHistory
 			await ctx.memory.commit();
@@ -46,7 +50,10 @@ export const postWork = async (ctx: WorkflowContext): Promise<Error | null> => {
 		}
 	}
 
-	return handleErrors("post", errs);
+	if (errs.length !== 0) handleErrors("post", errs);
+
+	logger.info(`Post work completed successfully. posts: ${successCounter}`);
+	return null;
 };
 
 const getOwnHistories = async (ctx: WorkflowContext, limit = 6): Promise<string> => {

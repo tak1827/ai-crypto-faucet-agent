@@ -16,7 +16,8 @@ Past Posts: <<-chat_history->>
 Create a tweet that strictly follows the following instruction:
 Instruction: <<-instruction->>
 
-Okay, here is a tweet post that you can use:`;
+Write a few sentences, each no longer than 280 characters.
+Start without any preamble: `;
 
 export const instructedPostInfer = async (
 	model: ILLMModel,

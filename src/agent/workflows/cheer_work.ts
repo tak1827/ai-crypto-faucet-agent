@@ -1,3 +1,4 @@
+import { log } from "node:console";
 import { getChatHistoryByRefId } from "../../entities";
 import type { ILLMModel } from "../../models";
 import { Env } from "../../utils/env";
@@ -26,6 +27,7 @@ export const cheerWork = async (ctx: WorkflowContext): Promise<Error | null> => 
 	const errs: Error[] = [];
 
 	// Iterate through the following IDs
+	let successCounter = 0;
 	for (const followingId of ctx.state.followingIds) {
 		try {
 			// Get the new tweets from the following ID
@@ -40,6 +42,7 @@ export const cheerWork = async (ctx: WorkflowContext): Promise<Error | null> => 
 				// Cheer the tweet by replying
 				const { content } = await cheeringReply(ctx, tweet);
 				logger.info(`Replied to tweet ${tweet.id} with content: ${content}`);
+				successCounter++;
 			}
 
 			// Save ChatHistory
@@ -51,7 +54,10 @@ export const cheerWork = async (ctx: WorkflowContext): Promise<Error | null> => 
 		}
 	}
 
-	return handleErrors("cheer", errs);
+	if (errs.length !== 0) handleErrors("cheer", errs);
+
+	logger.info(`Cheer work completed successfully. replies: ${successCounter}`);
+	return null;
 };
 
 const cheeringReply = async (

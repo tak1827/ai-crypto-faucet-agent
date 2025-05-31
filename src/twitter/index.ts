@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { Client, auth } from "twitter-api-sdk";
 import type { TwitterResponse, usersIdRetweets } from "twitter-api-sdk/dist/types";
 import { Env } from "../utils/env";
-import { readFromFile } from "../utils/file";
+import { readFromFile, writeToFile } from "../utils/file";
 import logger from "../utils/logger";
 import { sleepCancelable } from "../utils/sleep";
 import { startServer } from "./server";
@@ -19,6 +19,8 @@ export class Twitter {
 	ownId: string | undefined;
 	client: Client;
 
+	static readonly MAX_TWEET_LENGTH = 280;
+
 	constructor(opts: {
 		bearerToken?: string;
 		clientId?: string;
@@ -29,14 +31,22 @@ export class Twitter {
 		port?: number;
 	}) {
 		if (opts.clientId && opts.clientSecret && opts.callbackURL) {
+			const token = this.#readOAuthTokenFromFile();
 			this.#authClient = new auth.OAuth2User({
 				client_id: opts.clientId,
 				client_secret: opts.clientSecret,
 				callback: opts.callbackURL,
 				scopes: ["tweet.read", "tweet.write", "like.write", "users.read", "offline.access"],
-				token: this.#readOAuthTokenFromFile(), // Read token from file if exists
+				token,
 			});
 			this.client = new Client(this.#authClient);
+			if (token) {
+				Twitter.writeToFileAndRefleshToken(
+					token,
+					this.#authClient,
+					this.setTokenRefreshTimeoutId,
+				);
+			}
 		} else if (opts.bearerToken) {
 			this.#bearAuthClient = new auth.OAuth2Bearer(opts.bearerToken);
 			this.client = new Client(this.#bearAuthClient);
@@ -67,13 +77,20 @@ export class Twitter {
 		});
 	}
 
+	setTokenRefreshTimeoutId(id: Timer) {
+		this.#tokenRefreshTimeout = id;
+	}
+
 	startOAuthServer(): Twitter {
 		if (!this.#authClient) {
 			throw new Error("Auth client is not initialized");
 		}
-		this.#server = startServer(this.#host, this.#port, this.#authClient, (id: Timer) => {
-			this.#tokenRefreshTimeout = id;
-		});
+		this.#server = startServer(
+			this.#host,
+			this.#port,
+			this.#authClient,
+			this.setTokenRefreshTimeoutId,
+		);
 		return this;
 	}
 
@@ -152,6 +169,12 @@ export class Twitter {
 
 	// 100 requests / 24 hours PER USER 1667 requests / 24 hours PER APP
 	async createTweet(text: string, tweetId?: string): Promise<{ id: string; content: string }> {
+		if (text.length > Twitter.MAX_TWEET_LENGTH) {
+			throw new Error(
+				`Tweet content is too long: ${text.length} characters, max is ${Twitter.MAX_TWEET_LENGTH}.`,
+			);
+		}
+
 		const resp = await this.#handleRatelimit(() =>
 			this.client.tweets.createTweet({
 				text,
@@ -290,16 +313,44 @@ export class Twitter {
 	}
 
 	#readOAuthTokenFromFile(): Token | undefined {
-		const token = readFromFile<Token>(oauthFilePath());
+		const token = readFromFile<Token>(Twitter.oauthFilePath());
 		if (token?.expires_at && token.expires_at > Date.now()) {
 			logger.info(`OAuth token read from file: ${JSON.stringify(token)}`);
 			return token;
 		}
 		return undefined;
 	}
-}
 
-export const oauthFilePath = () => resolve(Env.path("DIR_TWITTER"), "oauth.json");
+	static oauthFilePath = () => resolve(Env.path("DIR_TWITTER"), "oauth.json");
+
+	static writeOAuthToFile(token: Token) {
+		logger.info(`OAuth token write to file: ${JSON.stringify(token)}`);
+		writeToFile(Twitter.oauthFilePath(), token);
+	}
+
+	static writeToFileAndRefleshToken(
+		token: Token,
+		authClient: auth.OAuth2User,
+		setTimeoutId: (id: Timer) => void,
+	) {
+		// First, write the token to file
+		Twitter.writeOAuthToFile(token);
+
+		if (token.expires_at === undefined) return;
+
+		// Set a timeout to refresh the token before it expires
+		const timeoutAt = token.expires_at - Date.now() - 60 * 1000;
+		if (timeoutAt < 0) throw new Error(`expireAt is invalid: ${token.expires_at}`);
+		const timeout = setTimeout(async () => {
+			const { token } = await authClient.refreshAccessToken();
+			Twitter.writeToFileAndRefleshToken(token, authClient, setTimeoutId);
+		}, timeoutAt);
+		setTimeoutId(timeout);
+		logger.info(
+			`Set token refresh timeout. expires at: ${new Date(token.expires_at).toUTCString()}`,
+		);
+	}
+}
 
 export type ResGetTweetReplies = {
 	nextToken: string;

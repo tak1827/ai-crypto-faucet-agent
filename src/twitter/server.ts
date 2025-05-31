@@ -1,9 +1,8 @@
 import type { Server } from "node:http";
 import express from "express";
 import type { auth } from "twitter-api-sdk";
-import { writeToFile } from "../utils/file";
 import logger from "../utils/logger";
-import { type Token, oauthFilePath } from "./index";
+import { Twitter } from "./index";
 
 export const startServer = (
 	host: string,
@@ -15,27 +14,6 @@ export const startServer = (
 	const STATE = "my-state";
 	const errHandler = (err: Error, res: express.Response) =>
 		res.status(500).json({ error: err.message });
-	const refleshTokenBeforeExpire = (expireAt: number) => {
-		const timeoutAt = expireAt - Date.now() - 60 * 1000;
-		if (timeoutAt < 0) {
-			throw new Error(`expireAt is invalid: ${expireAt}`);
-		}
-		const timeout = setTimeout(async () => {
-			const { token } = await authClient.refreshAccessToken();
-			writeOAuthToFile(token);
-			if (token.expires_at) {
-				logger.info(
-					`Access token refreshed successfully, expires at ${new Date(token.expires_at).toUTCString()}`,
-				);
-				refleshTokenBeforeExpire(token.expires_at);
-			}
-		}, timeoutAt);
-		setRefreshTimeoutId(timeout);
-	};
-	const writeOAuthToFile = (token: Token) => {
-		logger.info(`OAuth token write to file: ${JSON.stringify(token)}`);
-		writeToFile(oauthFilePath(), token);
-	};
 
 	app.get("/callback", async (req, res): Promise<void> => {
 		logger.info("/callback called");
@@ -47,8 +25,7 @@ export const startServer = (
 				return;
 			}
 			const { token } = await authClient.requestAccessToken(code as string);
-			writeOAuthToFile(token);
-			if (token.expires_at) refleshTokenBeforeExpire(token.expires_at);
+			Twitter.writeToFileAndRefleshToken(token, authClient, setRefreshTimeoutId);
 			res.json({ access_token: token.access_token, expires_at: token.expires_at });
 		} catch (error) {
 			logger.error(error, "Error requesting access token");
