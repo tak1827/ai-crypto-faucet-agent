@@ -22,6 +22,7 @@ export const startServer = (
 		}
 		const timeout = setTimeout(async () => {
 			const { token } = await authClient.refreshAccessToken();
+			writeOAuthToFile(token);
 			if (token.expires_at) {
 				logger.info(
 					`Access token refreshed successfully, expires at ${new Date(token.expires_at).toUTCString()}`,
@@ -48,8 +49,7 @@ export const startServer = (
 			const { token } = await authClient.requestAccessToken(code as string);
 			writeOAuthToFile(token);
 			if (token.expires_at) refleshTokenBeforeExpire(token.expires_at);
-			const { access_token, refresh_token, expires_at } = token;
-			res.json({ access_token, refresh_token, expires_at });
+			res.json({ access_token: token.access_token, expires_at: token.expires_at });
 		} catch (error) {
 			logger.error(error, "Error requesting access token");
 			errHandler(error as Error, res);

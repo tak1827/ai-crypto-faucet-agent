@@ -5,6 +5,7 @@ import type { TwitterResponse, usersIdRetweets } from "twitter-api-sdk/dist/type
 import { Env } from "../utils/env";
 import { readFromFile } from "../utils/file";
 import logger from "../utils/logger";
+import { sleepCancelable } from "../utils/sleep";
 import { startServer } from "./server";
 
 export class Twitter {
@@ -14,6 +15,7 @@ export class Twitter {
 	#port = 3000;
 	#server: Server | undefined;
 	#tokenRefreshTimeout: NodeJS.Timer | undefined;
+	#clearRateLimitTimer: (() => void) | undefined;
 	ownId: string | undefined;
 	client: Client;
 
@@ -76,9 +78,15 @@ export class Twitter {
 	}
 
 	async close() {
-		if (this.#tokenRefreshTimeout) {
+		if (this.#tokenRefreshTimeout !== undefined) {
 			clearTimeout(this.#tokenRefreshTimeout);
 			logger.info("token refresh timeout cleared");
+			this.#tokenRefreshTimeout = undefined; // reset the timeout
+		}
+		if (this.#clearRateLimitTimer !== undefined) {
+			this.#clearRateLimitTimer();
+			logger.info("rate limit timer cleared");
+			this.#clearRateLimitTimer = undefined; // reset the timer
 		}
 		if (this.#server) {
 			const waitClosed = new Promise<void>((resolve) => {
@@ -253,8 +261,7 @@ export class Twitter {
 	}
 
 	async #handleRatelimit<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
-		let attempt = 0;
-		while (attempt < maxRetries) {
+		for (let attempt = 0; attempt < maxRetries; attempt++) {
 			try {
 				return await fn();
 			} catch (err: any) {
@@ -266,10 +273,11 @@ export class Twitter {
 						const waitTime = resetTime - Date.now();
 						if (waitTime > 0) {
 							logger.info(
-								`x api rate limit hit. Waiting for ${Math.ceil(waitTime / 1000)} seconds.`,
+								`x api rate limit hit. Waiting for ${Math.ceil(waitTime / 1000)} sec.`,
 							);
-							await new Promise((resolve) => setTimeout(resolve, waitTime));
-							attempt++;
+							await sleepCancelable(waitTime, (clearTimer: () => void) => {
+								this.#clearRateLimitTimer = clearTimer; // set clear timer
+							});
 							continue;
 						}
 					}
