@@ -53,7 +53,7 @@ export const postWork = async (ctx: WorkflowContext): Promise<Error | null> => {
 	return null;
 };
 
-const getOwnHistories = async (ctx: WorkflowContext, limit = 6): Promise<string> => {
+const getOwnHistories = async (ctx: WorkflowContext, limit = 3): Promise<string> => {
 	const histories = await getChatHistories(ctx.db, ctx.memory.ownId, null, limit);
 	let result = "";
 	for (const history of histories) {
