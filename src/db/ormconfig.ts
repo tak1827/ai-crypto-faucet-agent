@@ -1,6 +1,6 @@
 import "reflect-metadata";
-import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { DataSource } from "typeorm";
 import { Env } from "../utils/env";
 import logger from "../utils/logger";
@@ -8,7 +8,6 @@ import logger from "../utils/logger";
 const isTest = process.env.NODE_ENV && process.env.NODE_ENV === "test";
 const database = isTest ? Env.string("DB_SCHEMA_TEST") : Env.string("DB_SCHEMA");
 if (!isTest) logger.info(`You will connect to non-test database: ${database}`);
-
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

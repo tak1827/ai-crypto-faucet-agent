@@ -35,6 +35,9 @@ export const cheerWork = async (ctx: WorkflowContext): Promise<Error | null> => 
 			logger.info(`Cheering ${tweets.length} new tweets from ${followingId}`);
 
 			for (const tweet of tweets) {
+				// Save the tweet to memory
+				await ctx.memory.add(followingId, tweet.content, tweet.id);
+
 				// Like the tweet
 				await ctx.twitter.likeTweet(tweet.id);
 				logger.info(`Liked tweet ${tweet.id} from ${followingId}`);

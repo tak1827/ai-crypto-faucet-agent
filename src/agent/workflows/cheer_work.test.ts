@@ -68,7 +68,7 @@ describe("workflow: cheer", async () => {
 		expect(err).toBeNull();
 
 		const histories = await getAllChatHistories(db);
-		console.log("histories", histories);
-		expect(histories.length).toBe(2 + 2); // 2 original + 2 replies
+		// console.log("histories", histories);
+		expect(histories.length).toBe(2 + 2 + 2); // 2 original + 2 new tweets + 2 replies
 	});
 });
