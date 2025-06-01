@@ -350,6 +350,10 @@ export class Twitter {
 			`Set token refresh timeout. expires at: ${new Date(token.expires_at).toUTCString()}`,
 		);
 	}
+
+	static getTweetUrl(userId: string, tweetId: string): string {
+		return `https://x.com/${userId}/status/${tweetId}`;
+	}
 }
 
 export type ResGetTweetReplies = {

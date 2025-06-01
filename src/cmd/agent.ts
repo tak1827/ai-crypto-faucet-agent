@@ -2,6 +2,7 @@ import { WorkflowManager, closeBaseCtx, createBaseCtx } from "../agent/workflow_
 import { airdropWork, createAirdropCtx } from "../agent/workflows/airdrop_work";
 import { cheerWork, createCheerCtx } from "../agent/workflows/cheer_work";
 import { createPostCtx, postWork } from "../agent/workflows/post_work";
+import { createQuotePostCtx, quotePostWork } from "../agent/workflows/quote_post_work";
 import { Env } from "../utils/env";
 import logger from "../utils/logger";
 
@@ -11,23 +12,30 @@ async function main() {
 
 	// Register cheer workflow
 	if (Env.boolean("WORKFLOW_ENABLE_CHEER")) {
-		const ctxCheer = createCheerCtx(baseCtx);
-		const cheerWorkInterval = Env.number("WORKFLOW_INTERVAL_CHEER");
-		manager.addWorkflow(cheerWorkInterval, cheerWork, ctxCheer, "cheer-work");
+		const ctx = createCheerCtx(baseCtx);
+		const interval = Env.number("WORKFLOW_INTERVAL_CHEER");
+		manager.addWorkflow(interval, cheerWork, ctx, "cheer-work");
 	}
 
 	// Register post workflow
 	if (Env.boolean("WORKFLOW_ENABLE_POST")) {
-		const ctxPost = createPostCtx(baseCtx);
-		const postWorkInterval = Env.number("WORKFLOW_INTERVAL_POST");
-		manager.addWorkflow(postWorkInterval, postWork, ctxPost, "post-work");
+		const ctx = createPostCtx(baseCtx);
+		const interval = Env.number("WORKFLOW_INTERVAL_POST");
+		manager.addWorkflow(interval, postWork, ctx, "post-work");
+	}
+
+	// Register post workflow
+	if (Env.boolean("WORKFLOW_ENABLE_QUOTE_POST")) {
+		const ctx = createQuotePostCtx(baseCtx);
+		const interval = Env.number("WORKFLOW_INTERVAL_QUOTE_POST");
+		manager.addWorkflow(interval, quotePostWork, ctx, "quote-post-work");
 	}
 
 	// Register airdrop workflow
 	if (Env.boolean("WORKFLOW_ENABLE_AIRDROP")) {
-		const ctxAirdrop = createAirdropCtx(baseCtx);
-		const airdropWorkInterval = Env.number("WORKFLOW_INTERVAL_AIRDROP");
-		manager.addWorkflow(airdropWorkInterval, airdropWork, ctxAirdrop, "airdrop-work");
+		const ctx = createAirdropCtx(baseCtx);
+		const interval = Env.number("WORKFLOW_INTERVAL_AIRDROP");
+		manager.addWorkflow(interval, airdropWork, ctx, "airdrop-work");
 	}
 
 	await manager.start();
