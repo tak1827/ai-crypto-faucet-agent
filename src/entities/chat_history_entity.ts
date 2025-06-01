@@ -19,8 +19,10 @@ export class ChatHistory {
 	@Column({ type: "varchar", length: 255 })
 	externalId!: string; // TweetId
 
+	// Reply: TweetId
+	// Post reference: URL of the referenced post
 	@Column({ type: "varchar", length: 255, nullable: true })
-	referenceId?: string; // conversation id
+	referenceId?: string;
 
 	@Column({ type: "varchar" })
 	content!: string;

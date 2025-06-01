@@ -9,8 +9,7 @@ Personality: <<-personality->>
 You have the following knowledge:
 Knowledge: <<-knowledge->>
 
-Repeatedly posting the same content can bore your followers,
-so it's better to switch up the tone and style.
+Never post the same content you’ve shared before.
 Past Posts: <<-chat_history->>
 
 Create a tweet that strictly follows the following instruction:
@@ -26,7 +25,7 @@ export const instructedPostInfer = async (
 	knowledge = "",
 	personality: string = DEFAULT_PERSONALITY,
 ): Promise<string> => {
-	const opts: any = { temperature: 0.1 };
+	const opts: any = { temperature: 0.8 };
 	const response = await model.infer(
 		promptFromTemplate(PROMPT_TEMPLATE, {
 			personality,

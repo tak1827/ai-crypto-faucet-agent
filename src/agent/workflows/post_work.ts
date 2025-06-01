@@ -1,4 +1,3 @@
-import { log } from "node:console";
 import { getChatHistories } from "../../entities";
 import type { ILLMModel } from "../../models";
 import { Env } from "../../utils/env";
@@ -6,8 +5,6 @@ import logger from "../../utils/logger";
 import { instructedPostInfer } from "../infers/post_instruction";
 import type { BaseWorkflowContext, WorkflowContext, WorkflowState } from "../workflow_manager";
 import { handleErrors, lookupKnowledge, validateStateName } from "./common";
-
-const MAXTWEET_LENGTH = 280;
 
 export type PostState = WorkflowState & {
 	name: "post";
@@ -28,10 +25,10 @@ export const postWork = async (ctx: WorkflowContext): Promise<Error | null> => {
 
 	const errs: Error[] = [];
 
-	// Iterate through the following IDs
 	let successCounter = 0;
 	for (const instruction of ctx.state.instructions) {
-		logger.info(`Post work for instruction: ${instruction.substring(0, 10)}...`);
+		logger.info(`Post work for instruction: ${instruction.substring(0, 20)}...`);
+
 		try {
 			// get own tweets
 			const ownHistories = await getOwnHistories(ctx);
