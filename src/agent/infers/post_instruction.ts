@@ -16,7 +16,7 @@ Past Posts: <<-chat_history->>
 Create a tweet that strictly follows the following instruction:
 Instruction: <<-instruction->>
 
-Write a few sentences, each no longer than 280 characters.
+Write a few sentences with a combined total of no more than 250 characters.
 Start without any preamble: `;
 
 export const instructedPostInfer = async (
