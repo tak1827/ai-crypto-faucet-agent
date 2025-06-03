@@ -87,6 +87,8 @@ export class LangChainTextSplitter implements ITextSplitter {
 	private _createDocument(langchainDoc: DocumentLangChain, rootPath: string): Document {
 		const filePath = excludeBeforeRootPath(langchainDoc.metadata.source, rootPath);
 		const fileName = basename(filePath);
-		return new Document(langchainDoc.pageContent, fileName, filePath, langchainDoc.metadata);
+		// Insert the file name into the top of the content
+		const text = `File: ${fileName}\n\n${langchainDoc.pageContent}`;
+		return new Document(text, fileName, filePath, langchainDoc.metadata);
 	}
 }
