@@ -36,7 +36,15 @@ export const lookupKnowledge = async (
 	);
 
 	// Log the filenames
-	const docCores = entities.map((e) => e.documentCore);
+	const docCores: DocumentCore[] = [];
+	await db.makeQuery(async (queryRunner) => {
+		for (const entity of entities) {
+			const core = await queryRunner.manager.findOne(DocumentCore, {
+				where: { id: entity.documentCore.id },
+			});
+			if (core) docCores.push(core);
+		}
+	});
 	logger.debug(
 		`Retrieved ${entities.length} docs. filenames: ${docCores.map((c) => c.fileName).join(", ")}`,
 	);

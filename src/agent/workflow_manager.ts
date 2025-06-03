@@ -67,6 +67,8 @@ export class WorkflowManager {
 
 				// Iterate through all workflows
 				for (const key in this.#workflows) {
+					if (this.#closing) break;
+
 					const workflow = this.#workflows[key];
 					// skip if workflow is not set or not expired or already running
 					if (!workflow || Date.now() < workflow.expireAt || workflow.running) continue;

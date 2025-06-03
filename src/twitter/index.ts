@@ -16,6 +16,7 @@ export class Twitter {
 	#server: Server | undefined;
 	#tokenRefreshTimeout: NodeJS.Timer | undefined;
 	#clearRateLimitTimer: (() => void) | undefined;
+	#closing = false;
 	ownId: string | undefined;
 	client: Client;
 
@@ -95,6 +96,7 @@ export class Twitter {
 	}
 
 	async close() {
+		this.#closing = true;
 		if (this.#tokenRefreshTimeout !== undefined) {
 			clearTimeout(this.#tokenRefreshTimeout);
 			logger.info("token refresh timeout cleared");
@@ -116,6 +118,7 @@ export class Twitter {
 			});
 			await waitClosed;
 		}
+		this.#closing = false; // reset the closing state
 	}
 
 	getAccessToken(): { accessToken: string; refreshToken: string } | null {
@@ -296,11 +299,17 @@ export class Twitter {
 						const waitTime = resetTime - Date.now();
 						if (waitTime > 0) {
 							logger.info(
-								`x api rate limit hit. Waiting for ${Math.ceil(waitTime / 1000)} sec.`,
+								`twitter api rate limit hit. Waiting for ${Math.ceil(waitTime / 1000)} sec.`,
 							);
-							await sleepCancelable(waitTime, (clearTimer: () => void) => {
-								this.#clearRateLimitTimer = clearTimer; // set clear timer
-							});
+
+							try {
+								await sleepCancelable(waitTime, (clearTimer: () => void) => {
+									this.#clearRateLimitTimer = clearTimer; // set clear timer
+								});
+							} catch (err) {
+								if (this.#closing) throw new Error(`closing!, cannot retry ${fn.name}`);
+								throw err;
+							}
 							continue;
 						}
 					}

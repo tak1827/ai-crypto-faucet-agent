@@ -41,9 +41,12 @@ export const postWork = async (ctx: WorkflowContext): Promise<Error | null> => {
 			// Save ChatHistory
 			await ctx.memory.commit();
 		} catch (err) {
+			const newErr = new Error(`${(err as Error).message} instruction: ${instruction}`);
+			// Immediately stop if closing
+			if ((err as Error).message.startsWith("closing!")) throw newErr;
+			// Otherwise, log the error
 			logger.warn(err, "Error in post work");
-			const errMsg = `${(err as Error).message} instruction: ${instruction}`;
-			errs.push(new Error(errMsg));
+			errs.push(newErr);
 		}
 	}
 

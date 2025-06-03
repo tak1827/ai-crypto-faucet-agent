@@ -51,9 +51,12 @@ export const cheerWork = async (ctx: WorkflowContext): Promise<Error | null> => 
 			// Save ChatHistory
 			await ctx.memory.commit();
 		} catch (err) {
+			const newErr = new Error(`${(err as Error).message} followingId: ${followingId}`);
+			// Immediately stop if closing
+			if ((err as Error).message.startsWith("closing!")) throw newErr;
+			// Otherwise, log the error
 			logger.warn(err, "Error in cheer work");
-			const errMsg = `${(err as Error).message} followingId: ${followingId}`;
-			errs.push(new Error(errMsg));
+			errs.push(newErr);
 		}
 	}
 

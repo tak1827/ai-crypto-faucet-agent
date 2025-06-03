@@ -52,9 +52,14 @@ export const quotePostWork = async (ctx: WorkflowContext): Promise<Error | null>
 		// Save ChatHistory
 		await ctx.memory.commit();
 	} catch (err) {
+		const newErr = new Error(
+			`${(err as Error).message} quoting: ${quoting.content.substring(0, 40)}...`,
+		);
+		// Immediately stop if closing
+		if ((err as Error).message.startsWith("closing!")) throw newErr;
+		// Otherwise, log the error
 		logger.warn(err, "Error in quote post work");
-		const errMsg = `${(err as Error).message} quoting: ${quoting.content.substring(0, 40)}...`;
-		errs.push(new Error(errMsg));
+		errs.push(newErr);
 	}
 
 	if (errs.length !== 0) handleErrors("quote-post", errs);
