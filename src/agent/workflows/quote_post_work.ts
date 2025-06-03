@@ -92,7 +92,11 @@ const quotePostTweet = async (
 
 	// Infer the assistant reply
 	const model = ctx.models[ctx.state.name] as ILLMModel;
-	const assistantRely = await instructedQuotePostInfer(model, quoting.content, knowledge);
+	let assistantRely = await instructedQuotePostInfer(model, quoting.content, knowledge);
+
+	// Append the original tweet URL to the assistant reply
+	const tweetUrl = Twitter.getTweetUrl(followingId, quoting.id);
+	assistantRely += `\n\n${tweetUrl}`;
 
 	// QuotePost the reply to Twitter
 	const { id } = await ctx.twitter.createTweet(assistantRely);
