@@ -1,6 +1,7 @@
 import type { Database } from "../../db";
-import type { DocumentChunk } from "../../entities";
+import { type DocumentChunk, DocumentCore } from "../../entities";
 import type { ILLMModel } from "../../models";
+import logger from "../../utils/logger";
 import type { WorkflowState } from "../workflow_manager";
 
 export const validateStateName = (state: WorkflowState, expectedName: string): void => {
@@ -32,6 +33,12 @@ export const lookupKnowledge = async (
 		embedding,
 		topK,
 		{},
+	);
+
+	// Log the filenames
+	const docCores = entities.map((e) => e.documentCore);
+	logger.debug(
+		`Retrieved ${entities.length} docs. filenames: ${docCores.map((c) => c.fileName).join(", ")}`,
 	);
 
 	// Concatenate the content of the top K chunks

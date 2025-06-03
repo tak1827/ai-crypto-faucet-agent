@@ -91,7 +91,7 @@ const skipPath = (path: string, ignorePaths?: string[]): boolean => {
 	if (!ignorePaths) return false;
 	for (const ignorePath of ignorePaths) {
 		if (path.includes(ignorePath)) {
-			logger.debug(`Ignoring path: ${path}`);
+			logger.trace(`Ignoring path: ${path}`);
 			return true;
 		}
 	}

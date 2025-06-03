@@ -63,7 +63,7 @@ export class LLamaCppModel implements ILLMModel {
 			temperature: opt?.temperature,
 			customStopTriggers: opt?.stopText,
 			onTextChunk: (text: string) => {
-				logger.debug(`prompt chunk: ${text}`);
+				logger.trace(`prompt chunk: ${text}`);
 			},
 		});
 		if (!opt || !opt.session) session.dispose();

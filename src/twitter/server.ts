@@ -40,7 +40,7 @@ export const startServer = (
 			state: STATE,
 			code_challenge_method: "s256",
 		});
-		// logger.debug(`X Auth URL: ${authUrl}`);
+		logger.trace(`X Auth URL: ${authUrl}`);
 		res.redirect(authUrl);
 	});
 

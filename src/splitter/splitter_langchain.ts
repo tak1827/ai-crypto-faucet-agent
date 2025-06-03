@@ -61,14 +61,14 @@ export class LangChainTextSplitter implements ITextSplitter {
 		for await (const file of files) {
 			fileCount++;
 			for (const fileChunk of file)
-				logger.debug(`Loaded: ${fileChunk.metadata.source}\n\n${fileChunk.pageContent}`);
+				logger.trace(`Loaded: ${fileChunk.metadata.source}\n\n${fileChunk.pageContent}`);
 
 			// Split DocumentLangChains into chunks
 			const docs: Document[] = [];
 			const chunks = await splitter.splitDocuments(file);
 			for (const chunk of chunks) {
 				docs.push(this._createDocument(chunk, path));
-				logger.debug(`Split: ${chunk.metadata.source}\n\n${chunk.pageContent}`);
+				logger.trace(`Split: ${chunk.metadata.source}\n\n${chunk.pageContent}`);
 			}
 			if (docs.length > 0) yield docs;
 		}
