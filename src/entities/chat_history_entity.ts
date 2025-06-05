@@ -27,6 +27,10 @@ export class ChatHistory {
 	@Column({ type: "varchar" })
 	content!: string;
 
+	@Column("vector")
+	@Column({ nullable: true })
+	embedding?: string;
+
 	@CreateDateColumn()
 	createdAt!: Date;
 

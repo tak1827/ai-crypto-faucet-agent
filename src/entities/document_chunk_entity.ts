@@ -3,6 +3,7 @@ import {
 	CreateDateColumn,
 	Entity,
 	Index,
+	JoinColumn,
 	ManyToOne,
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
@@ -16,7 +17,11 @@ export class DocumentChunk {
 	@PrimaryGeneratedColumn()
 	id!: number;
 
+	@Column({ nullable: true })
+	documentCoreId!: number;
+
 	@ManyToOne(() => DocumentCore, { onDelete: "CASCADE" })
+	@JoinColumn({ name: "documentCoreId" })
 	@Index()
 	documentCore!: DocumentCore;
 

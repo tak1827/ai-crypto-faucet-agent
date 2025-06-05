@@ -40,7 +40,7 @@ export const lookupKnowledge = async (
 	await db.makeQuery(async (queryRunner) => {
 		for (const entity of entities) {
 			const core = await queryRunner.manager.findOne(DocumentCore, {
-				where: { id: entity.documentCore.id },
+				where: { id: entity.documentCoreId },
 			});
 			if (core) docCores.push(core);
 		}
