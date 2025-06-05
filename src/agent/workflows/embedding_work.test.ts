@@ -1,25 +1,34 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { Database } from "../../db";
 import { AppDataSource } from "../../db/ormconfig";
 import { ChatHistory, getAllChatHistories } from "../../entities";
-import { createBaseCtx } from "../workflow_manager";
+import { LLamaCppModel } from "../../models/llama_cpp";
+import { Env } from "../../utils/env";
+import type { BaseWorkflowContext } from "../workflow_manager";
 import { embeddingWork } from "./embedding_work";
 
 describe("workflow: embedding", async () => {
-	const baseCtx = await createBaseCtx(true, true);
-	baseCtx.models.embedding = baseCtx.models.common;
+	const db = await new Database(AppDataSource).init();
+	const embed = await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")).init();
+	const baseCtx = {
+		db,
+		models: { embed },
+	} as any as BaseWorkflowContext;
 	const ctx: any = {
 		...baseCtx,
 		state: {
 			name: "embedding",
 		},
 	};
-	const db = baseCtx.db;
-	const ownId = baseCtx.twitter.ownId;
+	const ownId = "ownId123";
 
 	beforeAll(async () => {
+		const chat1 = new ChatHistory(ownId, "tweet1", "has embedding");
+		chat1.embedding = "[-2.2453473,9.105969,-0.25578472,3.3939383]";
 		await db.saveEntities([
-			new ChatHistory(ownId, "tweet1", "hello world"),
-			new ChatHistory(ownId, "tweet2", "another tweet"),
+			chat1,
+			new ChatHistory(ownId, "tweet2", "hello world"),
+			new ChatHistory(ownId, "tweet3", "another tweet"),
 		]);
 	});
 
@@ -34,7 +43,7 @@ describe("workflow: embedding", async () => {
 		expect(err).toBeNull();
 
 		const histories = await getAllChatHistories(db);
-		expect(histories.length).toBe(2);
+		expect(histories.length).toBe(3);
 		for (const h of histories) {
 			expect(h.embedding).not.toBeNull();
 		}

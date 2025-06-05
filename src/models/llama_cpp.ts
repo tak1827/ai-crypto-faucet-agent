@@ -12,7 +12,7 @@ import logger from "../utils/logger";
 import retry from "../utils/retry";
 
 export class LLamaCppModel implements ILLMModel {
-	public modelPath: string;
+	public readonly modelPath: string;
 	#abortController: AbortController = new AbortController();
 	#model?: LlamaModel;
 	#context?: LlamaContext;
@@ -21,7 +21,9 @@ export class LLamaCppModel implements ILLMModel {
 		trimWhitespaceSuffix: true,
 		stopOnAbortSignal: true,
 	};
-	#modelName: string;
+	readonly #modelName: string;
+	#closing = false;
+	readonly #closingError: Error = new Error("closing! no more inference allowed");
 
 	constructor(modelPath: string) {
 		this.modelPath = this._validateModelPath(modelPath);
@@ -34,6 +36,15 @@ export class LLamaCppModel implements ILLMModel {
 		this.#model = await llama.loadModel({ modelPath: this.modelPath });
 		this.#context = await this.#model.createContext();
 		return this;
+	}
+
+	public async close() {
+		this.#closing = true;
+		this.#abortController.abort();
+		if (this.#context) await this.#context.dispose();
+		if (this.#model) await this.#model.dispose();
+		logger.info(`closed model: ${this.#modelName}`);
+		this.#closing = false;
 	}
 
 	public name(): string {
@@ -57,6 +68,7 @@ export class LLamaCppModel implements ILLMModel {
 			session?: LlamaChatSession;
 		},
 	): Promise<string> {
+		if (this.#closing) throw this.#closingError;
 		const session = opt?.session ? opt.session : this.getSession("");
 		const result = await session.prompt(query, {
 			...this.#defaultPromptOptions,
@@ -142,6 +154,7 @@ export class LLamaCppModel implements ILLMModel {
 	// }
 
 	public async embed(text: string): Promise<readonly number[]> {
+		if (this.#closing) throw this.#closingError;
 		let result: readonly number[] | undefined;
 		await this.embedContext(async (embedder) => {
 			result = await embedder(text);
@@ -150,20 +163,12 @@ export class LLamaCppModel implements ILLMModel {
 	}
 
 	public async embedContext(task: (_embedder: Embedder) => Promise<void>) {
-		if (!this.#model) {
-			throw new Error("Model not initialized");
-		}
+		if (this.#closing) throw this.#closingError;
+		if (!this.#model) throw new Error("Model not initialized");
 		const context = await this.#model.createEmbeddingContext();
 		const embedder = async (text: string) => (await context.getEmbeddingFor(text)).vector;
 		await task(embedder);
 		context.dispose();
-	}
-
-	public async close() {
-		this.#abortController.abort();
-		if (this.#context) await this.#context.dispose();
-		if (this.#model) await this.#model.dispose();
-		logger.info(`closed model: ${this.#modelName}`);
 	}
 
 	private _validateModelPath(modelPath: string): string {

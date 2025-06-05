@@ -1,6 +1,7 @@
 import { WorkflowManager, closeBaseCtx, createBaseCtx } from "../agent/workflow_manager";
 import { airdropWork, createAirdropCtx } from "../agent/workflows/airdrop_work";
 import { cheerWork, createCheerCtx } from "../agent/workflows/cheer_work";
+import { createEmbeddingCtx, embeddingWork } from "../agent/workflows/embedding_work";
 import { createPostCtx, postWork } from "../agent/workflows/post_work";
 import { createQuotePostCtx, quotePostWork } from "../agent/workflows/quote_post_work";
 import { Env } from "../utils/env";
@@ -36,6 +37,13 @@ async function main() {
 		const ctx = createAirdropCtx(baseCtx);
 		const interval = Env.number("WORKFLOW_INTERVAL_AIRDROP");
 		manager.addWorkflow(interval, airdropWork, ctx, "airdrop-work");
+	}
+
+	// Register embedding workflow
+	if (Env.boolean("WORKFLOW_ENABLE_EMBEDDING")) {
+		const ctx = createEmbeddingCtx(baseCtx);
+		const interval = Env.number("WORKFLOW_INTERVAL_EMBEDDING");
+		manager.addWorkflow(interval, embeddingWork, ctx, "embedding-work");
 	}
 
 	await manager.start();
