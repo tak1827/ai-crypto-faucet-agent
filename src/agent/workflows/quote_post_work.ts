@@ -77,7 +77,7 @@ const filterUnQuotedTweet = async (
 
 	const filteredTweets = [] as { id: string; content: string }[];
 	for (const history of histories) {
-		if (history.content.length < 50) continue; // Skip if content is too short
+		if (history.content.length < 100) continue; // Skip if content is too short
 		const referenceId = Twitter.getTweetUrl(followingId, history.externalId);
 		const quotePosts = await getChatHistories(ctx.db, ctx.memory.ownId, referenceId, 1);
 		if (quotePosts.length > 0) continue; // Skip if already quoted

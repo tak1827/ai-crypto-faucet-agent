@@ -94,7 +94,15 @@ const filterNewTweet = async (
 	const filteredTweets = [] as { id: string; content: string }[];
 	for (const tweet of tweets) {
 		const history = await getChatHistoryByRefId(ctx.db, tweet.id);
-		if (history === null) filteredTweets.push(tweet);
+		if (history !== null) continue; // Skip if the tweet is already replied to
+		if (tweet.content.length < 100) {
+			// Skip if the tweet is too short
+			logger.debug(
+				`Skipping tweet ${tweet.id} from ${followingId} due to short. length: ${tweet.content.length}, content: ${tweet.content}`,
+			);
+			continue;
+		}
+		filteredTweets.push(tweet);
 	}
 	return filteredTweets;
 };
