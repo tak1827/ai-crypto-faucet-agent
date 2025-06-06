@@ -174,7 +174,7 @@ export class Twitter {
 	async createTweet(text: string, tweetId?: string): Promise<{ id: string; content: string }> {
 		if (text.length > Twitter.MAX_TWEET_LENGTH) {
 			throw new Error(
-				`Tweet content is too long: ${text.length} characters, max is ${Twitter.MAX_TWEET_LENGTH}.`,
+				`Tweet content is too long: ${text.length} characters, max is ${Twitter.MAX_TWEET_LENGTH}. text: ${text}`,
 			);
 		}
 
