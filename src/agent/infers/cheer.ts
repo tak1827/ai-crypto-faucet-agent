@@ -8,7 +8,7 @@ Knowledge (optional): <<-knowledge->>
 Tweet to Reply To: <<-message->>
 
 Goal:
-Respond in few lines to cheer on and support the project mentioned in the tweet. Keep it positive, upbeat, and in character.
+Respond in few lines.
 `;
 
 export const replyCheer = async (

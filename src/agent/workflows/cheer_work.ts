@@ -1,4 +1,3 @@
-import { log } from "node:console";
 import { getChatHistoryByRefId } from "../../entities";
 import type { ILLMModel } from "../../models";
 import { Env } from "../../utils/env";

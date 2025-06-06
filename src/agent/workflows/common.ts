@@ -22,7 +22,7 @@ export const lookupKnowledge = async (
 	model: ILLMModel,
 	db: Database,
 	query: string,
-	topK = 5,
+	topK = 3,
 ): Promise<string> => {
 	const embedding = await model.embed(query);
 
