@@ -24,7 +24,10 @@ export const embeddingWork = async (ctx: WorkflowContext): Promise<Error | null>
 
 	await ctx.db.makeTransaction(async (queryRunner) => {
 		const repo = queryRunner.manager.getRepository(ChatHistory);
-		const histories = await repo.find({ where: { embedding: IsNull() }, take: 20 });
+		const histories = await repo.find({
+			where: { embedding: ChatHistory.zeroEmbedding() },
+			take: 20,
+		});
 		logger.info(`Found ${histories.length} histories to embed`);
 
 		await emodel.embedContext(async (embedder) => {
