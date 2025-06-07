@@ -33,11 +33,11 @@ async function main() {
 	}
 
 	// Register airdrop workflow
-	if (Env.boolean("WORKFLOW_ENABLE_AIRDROP")) {
-		const ctx = createAirdropCtx(baseCtx);
-		const interval = Env.number("WORKFLOW_INTERVAL_AIRDROP");
-		manager.addWorkflow(interval, airdropWork, ctx, "airdrop-work");
-	}
+	// if (Env.boolean("WORKFLOW_ENABLE_AIRDROP")) {
+	// 	const ctx = createAirdropCtx(baseCtx);
+	// 	const interval = Env.number("WORKFLOW_INTERVAL_AIRDROP");
+	// 	manager.addWorkflow(interval, airdropWork, ctx, "airdrop-work");
+	// }
 
 	// Register embedding workflow
 	if (Env.boolean("WORKFLOW_ENABLE_EMBEDDING")) {

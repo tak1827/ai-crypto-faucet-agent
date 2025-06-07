@@ -1,4 +1,3 @@
-import { IsNull } from "typeorm";
 import { ChatHistory } from "../../entities/chat_history_entity";
 import type { ILLMModel } from "../../models";
 import logger from "../../utils/logger";
