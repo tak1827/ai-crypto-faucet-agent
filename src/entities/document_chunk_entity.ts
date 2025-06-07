@@ -8,6 +8,7 @@ import {
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from "typeorm";
+import { Env } from "../utils/env";
 import { DocumentCore } from "./document_core_entity";
 
 export type DocumentChunkMetadata = Record<string, unknown>;
@@ -34,6 +35,8 @@ export class DocumentChunk {
 	@Column("vector")
 	embedding!: string;
 
+	_distance?: number; // Used for vector search results
+
 	@Column({ type: "jsonb" })
 	metadata!: DocumentChunkMetadata;
 
@@ -42,4 +45,22 @@ export class DocumentChunk {
 
 	@UpdateDateColumn()
 	updatedAt!: Date;
+
+	constructor(
+		model: string,
+		chunk: string,
+		documentCore: DocumentCore,
+		metadata?: DocumentChunkMetadata,
+	) {
+		this.model = model;
+		this.chunk = chunk;
+		this.documentCore = documentCore;
+		this.metadata = metadata || {};
+		this.embedding = DocumentChunk.zeroEmbedding();
+	}
+
+	static zeroEmbedding(): string {
+		const dims = Env.number("EMBEDDING_DIMENSION");
+		return `[${Array(dims).fill(0).join(",")}]`;
+	}
 }

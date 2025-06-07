@@ -41,4 +41,10 @@ export class DocumentCore {
 
 	@UpdateDateColumn()
 	updatedAt!: Date;
+
+	constructor(fileName: string, filePath?: string, category?: DocumentCategory) {
+		this.fileName = fileName;
+		this.filePath = filePath;
+		this.category = category;
+	}
 }

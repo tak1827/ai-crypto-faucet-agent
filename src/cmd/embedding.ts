@@ -76,9 +76,7 @@ async function main() {
 						documentCore: docCore,
 					});
 				} else {
-					docCore = new DocumentCore();
-					docCore.fileName = firstChunk.fileName;
-					docCore.filePath = firstChunk.filePath;
+					docCore = new DocumentCore(firstChunk.fileName, firstChunk.filePath);
 					logger.debug(`Saving core document: ${firstChunk.fileName}`);
 					if (saveToDatabase) await queryRunner.manager.save(docCore);
 				}
@@ -86,12 +84,12 @@ async function main() {
 				let i = 0;
 				for (const chunk of splittedFile) {
 					i++;
-					const docChunk = new DocumentChunk();
-					if (docCore) docChunk.documentCore = docCore;
-					docChunk.chunk = chunk.content.replace(/\0/g, "");
-					docChunk.model = model.name();
-					docChunk.metadata = chunk.metadata ? { ...chunk.metadata, category } : { category };
-
+					const docChunk = new DocumentChunk(
+						model.name(),
+						chunk.content.replace(/\0/g, ""),
+						docCore,
+						chunk.metadata ? { ...chunk.metadata, category } : { category },
+					);
 					try {
 						const text = `FileName: ${docCore.fileName}\nContent: ${chunk.content}`;
 						const embeds = await embedder(text);

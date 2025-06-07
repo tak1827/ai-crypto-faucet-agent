@@ -7,6 +7,7 @@ import {
 	UpdateDateColumn,
 } from "typeorm";
 import type { Database } from "../db";
+import { Env } from "../utils/env";
 
 @Entity()
 export class ChatHistory {
@@ -28,8 +29,9 @@ export class ChatHistory {
 	content!: string;
 
 	@Column("vector")
-	@Column({ nullable: true })
-	embedding?: string;
+	embedding!: string;
+
+	_distance?: number; // Used for vector search results
 
 	@CreateDateColumn()
 	createdAt!: Date;
@@ -47,7 +49,13 @@ export class ChatHistory {
 		this.externalId = externalId || "";
 		this.content = content || "";
 		if (referenceId) this.referenceId = referenceId;
+		this.embedding = ChatHistory.zeroEmbedding();
 		this.createdAt = new Date();
+	}
+
+	static zeroEmbedding(): string {
+		const dims = Env.number("EMBEDDING_DIMENSION");
+		return `[${Array(dims).fill(0).join(",")}]`;
 	}
 }
 

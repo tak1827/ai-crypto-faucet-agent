@@ -101,17 +101,53 @@ export class Database {
 		filter?: { [key: string]: any },
 		whereQuery?: string,
 	): Promise<T> {
-		const embeddingString = `[${query.join(",")}]`;
-		const _whereQuery = whereQuery ? `AND ${whereQuery}` : "";
-		const _filter = filter ?? "{}";
-
-		const queryString = `
-      SELECT *, ${vectorColumnName} <=> $1 as "_distance"
-      FROM ${tableName}
-      WHERE metadata @> $2 ${_whereQuery}
-      ORDER BY "_distance" ASC
-      LIMIT $3;`;
-
-		return await this.appDataSource.query(queryString, [embeddingString, _filter, k]);
+		// build where clause
+		const whereParts = [] as string[];
+		if (tableName === "document_chunk") whereParts.push("metadata @> $3");
+		if (whereQuery) whereParts.push(whereQuery);
+		const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
+		// build sql query
+		const sql = `
+	    SELECT *, ${vectorColumnName} <=> $1 as "_distance"
+	    FROM ${tableName} ${whereClause}
+	    ORDER BY "_distance" ASC
+	    LIMIT $2;`;
+		// build parameters
+		const parameters: any[] = [`[${query.join(",")}]`, k];
+		if (tableName === "document_chunk") parameters.push(filter ?? "{}");
+		return await this.appDataSource.query(sql, parameters);
 	}
+
+	// 	async vectorSearchTables<T = any>(
+	// 		tableNames: string[],
+	// 		vectorColumnName: string,
+	// 		query: readonly number[],
+	// 		k = 3,
+	// 		filter?: { [key: string]: any },
+	// 		whereQuery?: string,
+	// 	): Promise<T> {
+	// 		if (tableNames.length < 2) {
+	// 			throw new Error(
+	// 				"At least two table names are required for vector search across multiple tables.",
+	// 			);
+	// 		}
+	// 		const embeddingString = `[${query.join(",")}]`;
+	// 		const _filter = filter ?? "{}";
+	// 		const selects = tableNames
+	// 			.map((table) => {
+	// 				const whereParts = [] as string[];
+	// 				if (table === "document_chunk") whereParts.push("metadata @> $2");
+	// 				if (whereQuery) whereParts.push(whereQuery);
+	// 				const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
+
+	// 				return `SELECT *, ${vectorColumnName} <=> $1 as "_distance",
+	//                 1.0 / (1.0 + ${vectorColumnName} <=> $1) as "_similarity",
+	//                 '${table}' as "_table"
+	//         FROM ${table} ${whereClause}`;
+	// 			})
+	// 			.join(" UNION ALL ");
+
+	// 		const queryString = `${selects} ORDER BY "_distance" ASC LIMIT $3;`;
+	// 		return await this.appDataSource.query(queryString, [embeddingString, _filter, k]);
+	// 	}
 }
