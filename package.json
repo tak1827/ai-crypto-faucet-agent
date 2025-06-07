@@ -13,9 +13,10 @@
 		"typeorm:base": "bun run --bun typeorm -d ./src/db/ormconfig.ts",
 		"typeorm:init": "bun typeorm:base migration:generate ./src/db/migrations/init",
 		"typeorm:up": "bun typeorm:base migration:run",
-		"typeorm:down": "bun typeorm:base migration:revert",
-		"chain": "anvil"
-	},
+                "typeorm:down": "bun typeorm:base migration:revert",
+                "chain": "anvil",
+                "llm-server": "bun run src/cmd/llm_server.ts"
+        },
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
 		"@types/bun": "latest"
