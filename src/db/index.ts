@@ -118,36 +118,24 @@ export class Database {
 		return await this.appDataSource.query(sql, parameters);
 	}
 
-	// 	async vectorSearchTables<T = any>(
-	// 		tableNames: string[],
-	// 		vectorColumnName: string,
-	// 		query: readonly number[],
-	// 		k = 3,
-	// 		filter?: { [key: string]: any },
-	// 		whereQuery?: string,
-	// 	): Promise<T> {
-	// 		if (tableNames.length < 2) {
-	// 			throw new Error(
-	// 				"At least two table names are required for vector search across multiple tables.",
-	// 			);
-	// 		}
-	// 		const embeddingString = `[${query.join(",")}]`;
-	// 		const _filter = filter ?? "{}";
-	// 		const selects = tableNames
-	// 			.map((table) => {
-	// 				const whereParts = [] as string[];
-	// 				if (table === "document_chunk") whereParts.push("metadata @> $2");
-	// 				if (whereQuery) whereParts.push(whereQuery);
-	// 				const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
-
-	// 				return `SELECT *, ${vectorColumnName} <=> $1 as "_distance",
-	//                 1.0 / (1.0 + ${vectorColumnName} <=> $1) as "_similarity",
-	//                 '${table}' as "_table"
-	//         FROM ${table} ${whereClause}`;
-	// 			})
-	// 			.join(" UNION ALL ");
-
-	// 		const queryString = `${selects} ORDER BY "_distance" ASC LIMIT $3;`;
-	// 		return await this.appDataSource.query(queryString, [embeddingString, _filter, k]);
-	// 	}
+	async vectorSearchTables(
+		tables: { tableName: string; textCol: string }[],
+		query: readonly number[],
+		k = 3,
+	): Promise<{ id: number; _distance: number; text: string }[]> {
+		if (tables.length < 2) {
+			throw new Error(
+				"At least two table names are required for vector search across multiple tables.",
+			);
+		}
+		// build sql query
+		const selectQury = tables.reduce((acc, { tableName, textCol }) => {
+			const prefix = acc === "" ? "" : `${acc} UNION ALL`;
+			return `${prefix} SELECT id, ${textCol} as text, embedding <=> $1 AS "_distance" FROM ${tableName}`;
+		}, "");
+		const sql = `SELECT * FROM (${selectQury}) AS combined ORDER BY "_distance" ASC LIMIT $2;`;
+		// build parameters
+		const parameters: any[] = [`[${query.join(",")}]`, k];
+		return await this.appDataSource.query(sql, parameters);
+	}
 }

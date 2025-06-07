@@ -5,7 +5,7 @@ import { Env } from "../utils/env";
 import { Database } from "./index";
 import { AppDataSource } from "./ormconfig";
 
-describe("db: vectorSearch", async () => {
+describe("db: vectorSearch/vectorSearchTables", async () => {
 	const db = await new Database(AppDataSource).init();
 	const emodel = await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")).init();
 	const filter = { meta: "traget" };
@@ -51,7 +51,7 @@ describe("db: vectorSearch", async () => {
 		});
 	});
 
-	test("vectorSearch works", async () => {
+	test("vectorSearch: works", async () => {
 		const query = "Tell me about the weather in Tokyo";
 		const queryEmbeds = await emodel.embed(query);
 		const results = await db.vectorSearch<ChatHistory[]>(
@@ -79,7 +79,7 @@ describe("db: vectorSearch", async () => {
 		});
 	});
 
-	test("vectorSearch with filter", async () => {
+	test("vectorSearch: with filter", async () => {
 		const query = "Tell me about the weather in Tokyo";
 		const queryEmbeds = await emodel.embed(query);
 		const results = await db.vectorSearch<DocumentChunk[]>(
@@ -99,5 +99,26 @@ describe("db: vectorSearch", async () => {
 		expect(results[0]?.model).toBe(`model-${3}`);
 		expect(results[1]?.model).toBe(`model-${1}`);
 		expect(results[2]?.model).toBe(`model-${0}`);
+	});
+
+	test("vectorSearchTables: works", async () => {
+		const query = "Tell me about the weather in Tokyo";
+		const queryEmbeds = await emodel.embed(query);
+		const results = await db.vectorSearchTables(
+			[
+				{ tableName: "chat_history", textCol: "content" },
+				{ tableName: "document_chunk", textCol: "chunk" },
+			],
+			queryEmbeds,
+			3,
+		);
+		// print each result
+		for (const result of results) {
+			console.log(`Result: ${result.id}, Distance: ${result._distance}, text: ${result.text}`);
+		}
+		expect(results.length).toBe(3);
+		expect(results[0]?.text).toBe("Tokyo is sunny today.");
+		expect(results[1]?.text).toBe("Tokyo is sunny today.");
+		expect(results[2]?.text).toBe("The weather is nice today.");
 	});
 });
