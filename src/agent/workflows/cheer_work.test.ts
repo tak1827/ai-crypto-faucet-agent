@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { Database } from "../../db";
 import { AppDataSource } from "../../db/ormconfig";
 import { ChatHistory, getAllChatHistories } from "../../entities";
-import { LLamaCppModel } from "../../models/llama_cpp";
+import { LLamaCppModel } from "../../models/llamacpp";
 import type { Twitter } from "../../twitter";
 import { mockTwitter } from "../../twitter/mock";
 import { Memory } from "../memory";

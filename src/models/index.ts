@@ -1,5 +1,5 @@
 import { Env } from "../utils/env";
-import { LLamaCppModel } from "./llama_cpp";
+import { LLamaCppModel } from "./llamacpp";
 
 export type Embedder = (_text: string) => Promise<readonly number[]>;
 

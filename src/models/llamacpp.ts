@@ -1,3 +1,4 @@
+import { on } from "node:events";
 import fs from "node:fs";
 import { basename } from "node:path";
 import {
@@ -66,6 +67,7 @@ export class LLamaCppModel implements ILLMModel {
 			temperature?: number;
 			stopText?: string[];
 			session?: LlamaChatSession;
+			onTextChunk?: (text: string) => void;
 		},
 	): Promise<string> {
 		if (this.#closing) throw this.#closingError;
@@ -76,6 +78,7 @@ export class LLamaCppModel implements ILLMModel {
 			customStopTriggers: opt?.stopText,
 			onTextChunk: (text: string) => {
 				logger.trace(`prompt chunk: ${text}`);
+				if (opt?.onTextChunk) opt.onTextChunk(text);
 			},
 		});
 		if (!opt || !opt.session) session.dispose();

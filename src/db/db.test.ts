@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { ChatHistory, DocumentChunk, DocumentCore } from "../entities";
-import { LLamaCppModel } from "../models/llama_cpp";
+import { LLamaCppModel } from "../models/llamacpp";
 import { Env } from "../utils/env";
 import { Database } from "./index";
 import { AppDataSource } from "./ormconfig";

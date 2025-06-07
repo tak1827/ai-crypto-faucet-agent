@@ -2,7 +2,7 @@ import { Chain } from "../chain";
 import { Database } from "../db";
 import { AppDataSource } from "../db/ormconfig";
 import type { ILLMModel } from "../models";
-import { LLamaCppModel } from "../models/llama_cpp";
+import { LLamaCppModel } from "../models/llamacpp";
 import { Twitter } from "../twitter";
 import { mockTwitter } from "../twitter/mock";
 import { Env } from "../utils/env";

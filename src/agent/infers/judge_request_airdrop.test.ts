@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { LLamaCppModel } from "../../models/llama_cpp";
+import { LLamaCppModel } from "../../models/llamacpp";
 import logger from "../../utils/logger";
 import { judgeRequestingAirdropInfer } from "./judge_request_airdrop";
 

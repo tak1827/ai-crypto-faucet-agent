@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { Database } from "../../db";
 import { AppDataSource } from "../../db/ormconfig";
 import { ChatHistory, getAllChatHistories } from "../../entities";
-import { LLamaCppModel } from "../../models/llama_cpp";
+import { LLamaCppModel } from "../../models/llamacpp";
 import { Env } from "../../utils/env";
 import type { BaseWorkflowContext } from "../workflow_manager";
 import { embeddingWork } from "./embedding_work";

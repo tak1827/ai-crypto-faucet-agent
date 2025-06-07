@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { LLamaCppModel } from "../../models/llama_cpp";
+import { LLamaCppModel } from "../../models/llamacpp";
 import { replyInfer } from "./reply";
 
 const modelPath = "./data/models/gemma-3-4b-it-Q4_K_M.gguf";

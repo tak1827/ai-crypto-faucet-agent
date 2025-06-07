@@ -7,16 +7,16 @@
 		"agent": "bun run src/cmd/agent.ts",
 		"emb": "bun run src/cmd/embedding.ts",
 		"db": "bun run src/cmd/database.ts",
+		"llm-server": "bun run src/cmd/llm_server.ts",
 		"test": "NODE_ENV=test bun test",
 		"fmt": "biome format --write .",
 		"lint": "biome check --write --unsafe .",
 		"typeorm:base": "bun run --bun typeorm -d ./src/db/ormconfig.ts",
 		"typeorm:init": "bun typeorm:base migration:generate ./src/db/migrations/init",
 		"typeorm:up": "bun typeorm:base migration:run",
-                "typeorm:down": "bun typeorm:base migration:revert",
-                "chain": "anvil",
-                "llm-server": "bun run src/cmd/llm_server.ts"
-        },
+		"typeorm:down": "bun typeorm:base migration:revert",
+		"chain": "anvil"
+	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
 		"@types/bun": "latest"
