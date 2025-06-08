@@ -29,7 +29,6 @@ export class LLamaCppModel implements ILLMModel {
 	constructor(modelPath: string) {
 		this.modelPath = this._validateModelPath(modelPath);
 		this.#modelName = basename(modelPath);
-		this.#abortController = new AbortController();
 	}
 
 	public async init(): Promise<ILLMModel> {

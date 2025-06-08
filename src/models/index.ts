@@ -47,6 +47,11 @@ export const createInitalizedModel = async (modelName?: string): Promise<ILLMMod
 		// const modelName = Env.string('LLM_OPENAI_MODEL')
 		// const embeddingModelName = modelName.split(':')[1]
 		// model = new OpenAIModel({ apiKey, modelName, embeddingModelName })
+	} else if (modelName?.startsWith("llamacpp-client")) {
+		const host = Env.string("LLM_SERVER_HOST");
+		const port = Env.number("LLM_SERVER_PORT");
+		const token = Env.string("LLM_SERVER_TOKEN");
+		model = await new LlamaCppClient(host, port, token).init();
 	} else {
 		model = await new LLamaCppModel(Env.path("WORKFLOW_MODEL_PATH")).init();
 	}
@@ -57,5 +62,3 @@ export const createInitalizedModel = async (modelName?: string): Promise<ILLMMod
 export const createInitalizedEmbModel = async (): Promise<ILLMModel> => {
 	return await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")).init();
 };
-
-export { LlamaCppClient };

@@ -50,6 +50,11 @@ export class LlamaCppServer {
 			next();
 		};
 
+		app.get("/", (req: Request, res: Response) => {
+			logger.info("/ called");
+			res.json({ status: "ok" });
+		});
+
 		app.post("/infer", auth, async (req: Request, res: Response) => {
 			logger.info("/infer called");
 
