@@ -151,8 +151,8 @@ export class LlamaCppServer {
 			}
 		}
 		if (stopText) {
-			if (!Array.isArray(stopText) || stopText.length > 0) {
-				return { prompt, err: "stopText must be an empty array" };
+			if (!Array.isArray(stopText) || stopText.length === 0) {
+				return { prompt, err: "stopText must be a non-empty array" };
 			}
 		}
 		return { prompt, temperature, stopText: stopText };

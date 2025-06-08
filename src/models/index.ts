@@ -62,3 +62,5 @@ export const createInitalizedModel = async (modelName?: string): Promise<ILLMMod
 export const createInitalizedEmbModel = async (): Promise<ILLMModel> => {
 	return await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")).init();
 };
+
+export { LlamaCppClient };

@@ -1,5 +1,5 @@
-import { expect, test } from "bun:test";
-import { LLamaCppModel } from "../../models/llamacpp";
+import { test } from "bun:test";
+import { LlamaCppClient, createInitalizedModel } from "../../models";
 import logger from "../../utils/logger";
 import { judgeRequestingAirdropInfer } from "./judge_request_airdrop";
 
@@ -7,7 +7,8 @@ const modelPath = "./data/models/gemma-3-4b-it-Q4_K_M.gguf";
 // const modelPath = "./data/models/qwen1_5-1_8b-chat-q8_0.gguf";
 
 test("judgeRequestingAirdropInfer works", async () => {
-	const model = await new LLamaCppModel(modelPath).init();
+	// const model = await new LLamaCppModel(modelPath).init();
+	const model = await createInitalizedModel(LlamaCppClient.name);
 	const addr = "0x6EFF2a64D31CD4354e1aAac3f6A99ebdaA4e5654";
 
 	const tests: {
