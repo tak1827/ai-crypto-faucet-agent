@@ -1,5 +1,6 @@
 import { Env } from "../utils/env";
 import { LLamaCppModel } from "./llamacpp";
+import { LlamaCppClient } from "./llamacpp_client";
 
 export type Embedder = (_text: string) => Promise<readonly number[]>;
 
@@ -56,3 +57,5 @@ export const createInitalizedModel = async (modelName?: string): Promise<ILLMMod
 export const createInitalizedEmbModel = async (): Promise<ILLMModel> => {
 	return await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")).init();
 };
+
+export { LlamaCppClient };
