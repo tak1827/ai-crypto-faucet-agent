@@ -68,21 +68,25 @@ export class LlamaCppServer {
 			res.setHeader("Connection", "keep-alive");
 			res.flushHeaders();
 
-			const session = this.#inferModel.getSession("");
+			logger.debug(
+				`[llamaserver] infer request: ${prompt.substring(0, 50)}.., temperature: ${temperature}, stopText: ${stopText}`,
+			);
+
 			try {
-				await this.#inferModel.infer(prompt, {
+				const result = await this.#inferModel.infer(prompt, {
 					temperature,
 					stopText,
 					onTextChunk: (chunk: string) => {
-						res.write(`data: ${chunk}\n\n`);
+						const safeChunk = chunk.replace(/\n\n/g, "[BREAK]");
+						res.write(`data:${safeChunk}\n\n`);
 					},
 				});
-				res.write("data: [EOF]\n\n");
+				res.write("data:[EOF]\n\n");
+				logger.debug(`[llamaserver] infer result: ${result.substring(0, 50)}..`);
 			} catch (err) {
 				logger.error(err, "[llamaserver] infer error");
-				res.write(`event: error\ndata: ${(err as Error).message}\n\n`);
+				res.write(`event: error\ndata:${(err as Error).message}\n\n`);
 			} finally {
-				session.dispose();
 				res.end();
 			}
 		});

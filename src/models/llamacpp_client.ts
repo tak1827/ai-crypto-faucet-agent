@@ -87,26 +87,27 @@ export class LlamaCppClient implements ILLMModel {
 				if (done) break;
 
 				const chunk = decoder.decode(value, { stream: true });
-				logger.trace(`[llamaclient] received chunk: ${chunk}`);
 				for (const part of chunk.split("\n\n")) {
-					const trimmed = part.trim();
-					if (trimmed.startsWith("data:")) {
-						const data = trimmed.slice(5).trim();
-						if (data === "[EOF]") {
-							return result;
+					// Remove [BREAK] marker
+					const cleaned = part.replace(/\[BREAK\]/g, "\n\n");
+
+					if (cleaned.startsWith("data:")) {
+						const noprefix = cleaned.slice(5);
+						if (noprefix === "[EOF]") {
+							break;
 						}
-						result += data;
+						result += noprefix;
+					} else {
+						result += cleaned; // Append any other text directly
 					}
 				}
 			}
 
 			// Flush any remaining decoder state (e.g., for multibyte characters)
 			const remaining = decoder.decode(); // no value → flush internal buffer
-			if (remaining) {
-				result += remaining;
-				logger.trace(`[llamaclient] flushed remaining data: ${remaining}`);
-			}
+			if (remaining) result += remaining;
 
+			logger.debug(`[llamaclient] final result: ${result.substring(0, 50)}..`);
 			return result;
 		} finally {
 			// Always release the reader when done or error
