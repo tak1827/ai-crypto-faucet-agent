@@ -2,7 +2,6 @@ import type { Server } from "node:http";
 import express, { type NextFunction, type Request, type Response } from "express";
 import { Env } from "../utils/env";
 import logger from "../utils/logger";
-import { createInitalizedEmbModel, createInitalizedModel } from "./index";
 import { LLamaCppModel } from "./llamacpp";
 
 export type InferRequest = {
@@ -51,12 +50,12 @@ export class LlamaCppServer {
 		};
 
 		app.get("/", (req: Request, res: Response) => {
-			logger.info("/ called");
+			logger.info("[llamaserver] / called");
 			res.json({ status: "ok" });
 		});
 
 		app.post("/infer", auth, async (req: Request, res: Response) => {
-			logger.info("/infer called");
+			logger.info("[llamaserver] /infer called");
 
 			// validate request body
 			const { prompt, temperature, stopText, err } = this.#validateInferRequest(req);
@@ -80,7 +79,7 @@ export class LlamaCppServer {
 				});
 				res.write("data: [EOF]\n\n");
 			} catch (err) {
-				logger.error(err, "infer error");
+				logger.error(err, "[llamaserver] infer error");
 				res.write(`event: error\ndata: ${(err as Error).message}\n\n`);
 			} finally {
 				session.dispose();
@@ -89,7 +88,7 @@ export class LlamaCppServer {
 		});
 
 		app.post("/embedding", auth, async (req: Request, res: Response) => {
-			logger.info("/embedding called");
+			logger.info("[llamaserver] /embedding called");
 
 			// validate request body
 			const { text, err } = this.#validateEmbeddingRequest(req);
@@ -106,13 +105,13 @@ export class LlamaCppServer {
 				const emb = await this.#embedModel?.embed(text);
 				res.json({ embedding: emb });
 			} catch (err) {
-				logger.error(err, "embedding error");
+				logger.error(err, "[llamaserver] embedding error");
 				res.status(500).json({ error: (err as Error).message });
 			}
 		});
 
 		this.#server = app.listen(this.port, this.host, () => {
-			logger.info(`llm api server started on http://${this.host}:${this.port}`);
+			logger.info(`[llamaserver] started on http://${this.host}:${this.port}`);
 		});
 	}
 
@@ -120,7 +119,7 @@ export class LlamaCppServer {
 		if (this.#closing) return;
 
 		this.#closing = true;
-		logger.info("closing llm api server...");
+		logger.info("[llamaserver] closing ...");
 
 		// Close the models first
 		await this.#inferModel.close();
@@ -134,7 +133,7 @@ export class LlamaCppServer {
 		}
 
 		this.#closing = false;
-		logger.info("llm api server closed");
+		logger.info("[llamaserver] closed");
 	}
 
 	#validateInferRequest(req: Request): InferRequest & { err?: string } {

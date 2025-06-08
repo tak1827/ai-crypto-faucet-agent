@@ -1,5 +1,6 @@
 import type { Embedder, ILLMModel } from ".";
 import { Env } from "../utils/env";
+import logger from "../utils/logger";
 import { sleep } from "../utils/sleep";
 
 export class LlamaCppClient implements ILLMModel {
@@ -7,6 +8,8 @@ export class LlamaCppClient implements ILLMModel {
 	readonly token: string;
 	#closing = false;
 	#abortController: AbortController = new AbortController();
+
+	static readonly name = "llamacpp-client";
 
 	constructor(host: string, port: number, token: string) {
 		this.baseUrl = `http://${host}:${port}`;
@@ -33,14 +36,16 @@ export class LlamaCppClient implements ILLMModel {
 
 	async close(): Promise<void> {
 		this.#closing = true;
+		logger.info("[llamaclient] closing ...");
 		this.#abortController.abort();
 		await sleep(1000); // wait for 1 second to allow any ongoing requests to finish
 		this.#closing = false;
+		logger.info("[llamaclient] closed");
 		return;
 	}
 
 	name(): string {
-		return "llama-cpp-client";
+		return "llamacpp-client";
 	}
 
 	async infer(
@@ -82,6 +87,7 @@ export class LlamaCppClient implements ILLMModel {
 				if (done) break;
 
 				const chunk = decoder.decode(value, { stream: true });
+				logger.trace(`[llamaclient] received chunk: ${chunk}`);
 				for (const part of chunk.split("\n\n")) {
 					const trimmed = part.trim();
 					if (trimmed.startsWith("data:")) {
@@ -96,7 +102,10 @@ export class LlamaCppClient implements ILLMModel {
 
 			// Flush any remaining decoder state (e.g., for multibyte characters)
 			const remaining = decoder.decode(); // no value → flush internal buffer
-			if (remaining) result += remaining;
+			if (remaining) {
+				result += remaining;
+				logger.trace(`[llamaclient] flushed remaining data: ${remaining}`);
+			}
 
 			return result;
 		} finally {
