@@ -40,7 +40,7 @@ export const judgeRequestingAirdropInfer = async (
 	const response = await model.inferStructured<boolean>(
 		promptFromTemplate(PROMPT_TEMPLATE, { input: query }),
 		booleanEncoder,
-		{ stopText: ["Reason"], temperature: 0.5 },
+		{ stopText: ["Reason"], temperature: 0.1 },
 	);
 	return response;
 };

@@ -69,7 +69,7 @@ export class LlamaCppServer {
 			res.flushHeaders();
 
 			logger.debug(
-				`[llamaserver] infer request: ${prompt.substring(0, 50)}.., temperature: ${temperature}, stopText: ${stopText}`,
+				`[llamaserver] infer request: temperature: ${temperature}, stopText: ${stopText}, prompt: ${prompt}`,
 			);
 
 			try {
@@ -82,7 +82,7 @@ export class LlamaCppServer {
 					},
 				});
 				res.write("data:[EOF]\n\n");
-				logger.debug(`[llamaserver] infer result: ${result.substring(0, 50)}..`);
+				logger.debug(`[llamaserver] infer result: ${result}`);
 			} catch (err) {
 				logger.error(err, "[llamaserver] infer error");
 				res.write(`event: error\ndata:${(err as Error).message}\n\n`);
