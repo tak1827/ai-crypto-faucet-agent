@@ -6,9 +6,8 @@ async function main() {
 	const host = Env.string("LLM_SERVER_HOST");
 	const port = Env.number("LLM_SERVER_PORT");
 	const token = Env.string("LLM_SERVER_TOKEN");
-	const embedTimeout = Env.number("LLM_EMBED_TIMEOUT");
 
-	const server = new LlamaCppServer(host, port, token, embedTimeout);
+	const server = new LlamaCppServer(host, port, token);
 	await server.start();
 
 	const close = async () => {
