@@ -4,7 +4,7 @@ import { Database } from "../db";
 import { AppDataSource } from "../db/ormconfig";
 import { DocumentChunk } from "../entities/document_chunk_entity";
 import { DocumentCategory, DocumentCore } from "../entities/document_core_entity";
-import { createInitalizedEmbModel } from "../models";
+import { LlamaCppClient, createInitalizedEmbModel } from "../models";
 import { LangChainTextSplitter } from "../splitter/splitter_langchain";
 import { Env } from "../utils/env";
 import logger from "../utils/logger";
@@ -36,7 +36,7 @@ async function main() {
 		default: true,
 	});
 
-	const model = await createInitalizedEmbModel();
+	const model = await createInitalizedEmbModel(LlamaCppClient.name);
 
 	const spliter = new LangChainTextSplitter();
 	const chunkSize = Env.number("SPLITTER_CHUNK_SIZE");

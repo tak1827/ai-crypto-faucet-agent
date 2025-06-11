@@ -59,7 +59,13 @@ export const createInitalizedModel = async (modelName?: string): Promise<ILLMMod
 	return model;
 };
 
-export const createInitalizedEmbModel = async (): Promise<ILLMModel> => {
+export const createInitalizedEmbModel = async (modelName?: string): Promise<ILLMModel> => {
+	if (modelName === LlamaCppClient.name) {
+		const host = Env.string("LLM_SERVER_HOST");
+		const port = Env.number("LLM_SERVER_PORT");
+		const token = Env.string("LLM_SERVER_TOKEN");
+		return await new LlamaCppClient(host, port, token).init();
+	}
 	return await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")).init();
 };
 
