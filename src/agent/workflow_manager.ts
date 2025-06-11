@@ -1,8 +1,12 @@
 import { Chain } from "../chain";
 import { Database } from "../db";
 import { AppDataSource } from "../db/ormconfig";
-import type { ILLMModel } from "../models";
-import { LLamaCppModel } from "../models/llamacpp";
+import {
+	type ILLMModel,
+	LLamaCppModel,
+	LlamaCppClient,
+	createInitalizedModel,
+} from "../models";
 import { Twitter } from "../twitter";
 import { mockTwitter } from "../twitter/mock";
 import { Env } from "../utils/env";
@@ -139,14 +143,19 @@ export class WorkflowManager {
 
 export const createBaseCtx = async (
 	isTest?: boolean,
-	noEmbed?: boolean,
+	noClient?: boolean,
 ): Promise<BaseWorkflowContext> => {
 	const db = await new Database(AppDataSource).init();
 	const twitter = isTest ? new mockTwitter() : Twitter.create().startOAuthServer();
-	const model = await new LLamaCppModel(Env.path("WORKFLOW_MODEL_PATH")).init();
-	const emodel = noEmbed
-		? model
-		: await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")).init();
+	let model: ILLMModel | undefined;
+	let emodel: ILLMModel | undefined;
+	if (noClient) {
+		model = await new LLamaCppModel(Env.path("WORKFLOW_MODEL_PATH")).init();
+		emodel = await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")).init();
+	} else {
+		model = await createInitalizedModel(LlamaCppClient.name);
+		emodel = model;
+	}
 	const chain = Chain.create();
 	const memory = Memory.create(db, twitter.ownId);
 	return {

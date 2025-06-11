@@ -5,7 +5,7 @@ import { createBaseCtx } from "../workflow_manager";
 import { postWork } from "./post_work";
 
 describe("workflow: post", async () => {
-	const baseCtx = await createBaseCtx(true, true);
+	const baseCtx = await createBaseCtx(true);
 	baseCtx.models.post = baseCtx.models.common;
 	const ctx: any = {
 		...baseCtx,

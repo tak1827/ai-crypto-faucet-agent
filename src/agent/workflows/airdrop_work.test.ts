@@ -13,7 +13,7 @@ import { createBaseCtx } from "../workflow_manager";
 import { airdropWork } from "./airdrop_work";
 
 describe("workflow: airdrop", async () => {
-	const baseCtx = await createBaseCtx(true, true);
+	const baseCtx = await createBaseCtx(true);
 	baseCtx.models.airdrop = baseCtx.models.common;
 	const ctx: any = {
 		...baseCtx,

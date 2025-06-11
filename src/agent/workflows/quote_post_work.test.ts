@@ -6,7 +6,7 @@ import { createBaseCtx } from "../workflow_manager";
 import { quotePostWork } from "./quote_post_work";
 
 describe("workflow: quotePost", async () => {
-	const baseCtx = await createBaseCtx(true, true);
+	const baseCtx = await createBaseCtx(true);
 	baseCtx.models["quote-post"] = baseCtx.models.common;
 	const ctx: any = {
 		...baseCtx,
