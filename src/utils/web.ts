@@ -34,10 +34,46 @@ export const extractArticleContent = async (
 };
 
 export const resolveShortUrl = async (url: string): Promise<string> => {
-	try {
-		const response = await fetch(url, { redirect: "follow" });
-		return response.url;
-	} catch (err) {
-		throw new Error(`Failed to resolve ${url}: ${(err as Error).message}`);
-	}
+        try {
+                const response = await fetch(url, { redirect: "follow" });
+                return response.url;
+        } catch (err) {
+                throw new Error(`Failed to resolve ${url}: ${(err as Error).message}`);
+        }
+};
+
+const shortDomains = [
+        "t.co",
+        "bit.ly",
+        "tinyurl.com",
+        "goo.gl",
+        "ow.ly",
+        "is.gd",
+        "buff.ly",
+];
+
+const isShortUrl = (url: string): boolean => {
+        try {
+                const { hostname } = new URL(url);
+                return shortDomains.includes(hostname) || hostname.length <= 5;
+        } catch {
+                return false;
+        }
+};
+
+export const fetchArticlesFromText = async (
+        text: string,
+): Promise<{
+        title: string;
+        content: string;
+        publishedTime?: string | null;
+}[]> => {
+        const urlRegex = /https?:\/\/[^\s]+/g;
+        const rawUrls = text.match(urlRegex) ?? [];
+
+        const urls = await Promise.all(
+                rawUrls.map(async (u) => (isShortUrl(u) ? await resolveShortUrl(u) : u)),
+        );
+
+        return Promise.all(urls.map((u) => extractArticleContent(u)));
 };
