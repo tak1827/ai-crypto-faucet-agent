@@ -107,7 +107,7 @@ export class LlamaCppClient implements ILLMModel {
 			const remaining = decoder.decode(); // no value → flush internal buffer
 			if (remaining) result += remaining;
 
-			logger.debug(`[llamaclient] final result: ${result.substring(0, 50)}..`);
+			logger.trace(`[llamaclient] final result: ${result}`);
 			return result;
 		} finally {
 			// Always release the reader when done or error
