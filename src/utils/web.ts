@@ -29,5 +29,14 @@ export const extractArticleContent = async (url: string): Promise<{
     content: article.textContent,
     publishedTime: article.publishedTime || null,
   };
-}
+};
+
+export const resolveShortUrl = async (url: string): Promise<string> => {
+  try {
+    const response = await fetch(url, { redirect: 'follow' });
+    return response.url;
+  } catch (err) {
+    throw new Error(`Failed to resolve ${url}: ${(err as Error).message}`);
+  }
+};
 

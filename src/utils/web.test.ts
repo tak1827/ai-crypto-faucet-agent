@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { extractArticleContent } from './web';
+import { extractArticleContent, resolveShortUrl } from './web';
 
 test('extracts title and content from a real article', async () => {
   const url = 'https://oasyswallet.zendesk.com/hc/en-us/articles/12578425563791-Campaign-Announcement-Oassy-hunt';
@@ -12,4 +12,11 @@ test('extracts title and content from a real article', async () => {
   expect(result.content.length).toBeGreaterThan(100); // reasonable article length
 
   expect(result).toHaveProperty('publishedTime');
+});
+
+test('resolveShortUrl expands t.co link', async () => {
+  const shortUrl = 'https://t.co/jkjL5ixOIl';
+  const resolved = await resolveShortUrl(shortUrl);
+  expect(resolved).not.toBe(shortUrl);
+  expect(resolved.startsWith('https://')).toBe(true);
 });
