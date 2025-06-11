@@ -19,7 +19,8 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
-		"@types/bun": "latest"
+		"@types/bun": "latest",
+		"@types/jsdom": "^21.1.7"
 	},
 	"peerDependencies": {
 		"typescript": "^5"
@@ -29,10 +30,12 @@
 		"@langchain/community": "^0.3.36",
 		"@langchain/core": "^0.3.42",
 		"@langchain/textsplitters": "^0.1.0",
+		"@mozilla/readability": "^0.6.0",
 		"@types/express": "^5.0.0",
 		"dotenv": "^16.4.7",
 		"ethers": "^6.13.5",
 		"express": "^4.21.2",
+		"jsdom": "^26.1.0",
 		"langchain": "^0.3.19",
 		"node-llama-cpp": "^3.6.0",
 		"pg": "^8.14.0",
