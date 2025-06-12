@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { Twitter } from "../twitter";
 import {
 	type ContentFetcher,
+	ContentType,
 	extractArticleContent,
 	fetchArticlesFromText,
 	resolveShortUrl,
@@ -19,7 +20,7 @@ test("extracts title and content from a real article", async () => {
 	expect(result).toHaveProperty("content");
 	expect(result.content.length).toBeGreaterThan(100); // reasonable article length
 
-	expect(result).toHaveProperty("publishedTime");
+	expect(result).toHaveProperty("datetime");
 });
 
 test("resolveShortUrl expands t.co link", async () => {
@@ -31,7 +32,10 @@ test("resolveShortUrl expands t.co link", async () => {
 });
 
 test("fetchArticlesFromText extracts all URLs", async () => {
-	const twitter = Twitter.create(false);
+	const twitter = Twitter.create();
+	twitter.startOAuthServer();
+	await twitter.waitLogin();
+
 	const contentFetchers = new Map<string, ContentFetcher>();
 	contentFetchers.set("twitter.com", twitter.tweetContentFetcher);
 	contentFetchers.set("x.com", twitter.tweetContentFetcher);
@@ -44,4 +48,6 @@ test("fetchArticlesFromText extracts all URLs", async () => {
 	expect(articles.length).toBe(2);
 	expect(articles[0]).toHaveProperty("title");
 	expect(articles[0]).toHaveProperty("content");
+	if (articles[0]) expect(articles[0].type).toBe(ContentType.Web);
+	if (articles[1]) expect(articles[1].type).toBe(ContentType.Tweet);
 });

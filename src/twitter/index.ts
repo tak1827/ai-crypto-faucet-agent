@@ -7,6 +7,7 @@ import { Env } from "../utils/env";
 import { readFromFile, writeToFile } from "../utils/file";
 import logger from "../utils/logger";
 import { sleepCancelable } from "../utils/sleep";
+import { ContentType } from "../utils/web";
 import { startServer } from "./server";
 
 export class Twitter {
@@ -311,6 +312,7 @@ export class Twitter {
 	): Promise<{
 		title: string;
 		content: string;
+		type: ContentType;
 		datetime?: Date;
 	}> => {
 		const extractTweetId = (url: string): string | null => {
@@ -325,6 +327,7 @@ export class Twitter {
 		return {
 			title: `title: ${tweet.content.slice(0, 50)}...`,
 			content: tweet.content,
+			type: ContentType.Tweet,
 			datetime: parseDateTime(tweet.createdAt),
 		};
 	};

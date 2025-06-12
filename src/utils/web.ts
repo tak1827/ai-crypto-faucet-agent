@@ -57,8 +57,14 @@ export const isShortUrl = (url: string): boolean => {
 export type ContentFetcher = (url: string) => Promise<{
 	title: string;
 	content: string;
+	type: ContentType;
 	datetime?: Date;
 }>;
+
+export enum ContentType {
+	Web = "web",
+	Tweet = "tweet",
+}
 
 export const fetchArticlesFromText = async (
 	text: string,
@@ -67,12 +73,13 @@ export const fetchArticlesFromText = async (
 	{
 		title: string;
 		content: string;
+		type: ContentType;
 		datetime?: Date;
 	}[]
 > => {
 	const urlRegex = /https?:\/\/[^\s]+/g;
 	const rawUrls = text.match(urlRegex) ?? [];
-	const results: { title: string; content: string; datetime?: Date }[] = [];
+	const results: { title: string; content: string; type: ContentType; datetime?: Date }[] = [];
 	for (const url of rawUrls) {
 		try {
 			const urlObj = isShortUrl(url) ? new URL(await resolveShortUrl(url)) : new URL(url);
@@ -80,7 +87,10 @@ export const fetchArticlesFromText = async (
 				const fetcher = contentFetchers.get(urlObj.hostname);
 				if (fetcher) results.push(await fetcher(urlObj.toString()));
 			} else {
-				results.push(await extractArticleContent(urlObj.toString()));
+				results.push({
+					...(await extractArticleContent(urlObj.toString())),
+					type: ContentType.Web,
+				});
 			}
 		} catch (err) {
 			// skip the URL if any error occurs
