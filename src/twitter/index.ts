@@ -2,6 +2,7 @@ import type { Server } from "node:http";
 import { resolve } from "node:path";
 import { Client, auth } from "twitter-api-sdk";
 import type { TwitterResponse, usersIdRetweets } from "twitter-api-sdk/dist/types";
+import { parseDateTime } from "../utils/date";
 import { Env } from "../utils/env";
 import { readFromFile, writeToFile } from "../utils/file";
 import logger from "../utils/logger";
@@ -59,10 +60,10 @@ export class Twitter {
 		if (opts.port) this.#port = opts.port;
 	}
 
-	static create(): Twitter {
-		const bearerToken = Env.string("X_BEARER_TOKEN");
+	static create(useBear = false): Twitter {
+		const bearerToken = useBear ? Env.string("X_BEARER_TOKEN") : undefined;
 		const clientId = Env.string("X_CLIENT_ID");
-		const clientSecret = Env.string("X_CLIENT_SECRET");
+		const clientSecret = useBear ? undefined : Env.string("X_CLIENT_SECRET");
 		const callbackURL = Env.string("X_CALLBACK_URL");
 		const ownId = Env.string("X_OWN_ID");
 		const host = Env.string("X_SERVER_HOST");
@@ -151,9 +152,10 @@ export class Twitter {
 	async getTweets(
 		userId: string,
 		opts?: { maxResults?: number; sinceId?: string; startTime?: string },
-	): Promise<{ id: string; content: string }[]> {
+	): Promise<{ id: string; content: string; createdAt?: string }[]> {
 		const pages = this.client.tweets.usersIdTweets(userId, {
 			exclude: ["replies", "retweets"],
+			"tweet.fields": ["created_at"],
 			max_results: opts?.maxResults || 5, // between 5 and 100
 			since_id: opts?.sinceId,
 			start_time: opts?.startTime,
@@ -163,11 +165,33 @@ export class Twitter {
 		this.#handleRespErr(resp, `failed to get tweets by user id: ${userId}`);
 		if (!resp.data) return [];
 
-		const tweets: { id: string; content: string }[] = [];
+		const tweets: { id: string; content: string; createdAt?: string }[] = [];
 		for (const item of resp.data) {
-			tweets.push({ id: item.id, content: item.text });
+			const tweet: { id: string; content: string; createdAt?: string } = {
+				id: item.id,
+				content: item.text,
+			};
+			if (item.created_at) tweet.createdAt = item.created_at;
+			tweets.push(tweet);
 		}
 		return tweets;
+	}
+
+	async findTweetById(
+		tweetId: string,
+	): Promise<{ id: string; content: string; createdAt: string }> {
+		const resp = await this.#handleRatelimit(() =>
+			this.client.tweets.findTweetById(tweetId, {
+				"tweet.fields": ["created_at"],
+			}),
+		);
+		this.#handleRespErr(resp, `failed to find tweet by id: ${tweetId}`);
+		if (!resp.data) throw new Error(`tweet not found: ${tweetId}`);
+		return {
+			id: resp.data.id || "",
+			content: resp.data.text || "",
+			createdAt: resp.data.created_at || "",
+		};
 	}
 
 	// 100 requests / 24 hours PER USER 1667 requests / 24 hours PER APP
@@ -280,6 +304,30 @@ export class Twitter {
 		}
 		return result;
 	}
+
+	// Implement ContentFetcher interface for Twitter
+	public tweetContentFetcher = async (
+		url: string,
+	): Promise<{
+		title: string;
+		content: string;
+		datetime?: Date;
+	}> => {
+		const extractTweetId = (url: string): string | null => {
+			const match = url.match(/\/status\/(\d+)/);
+			return match && match.length > 1 && match[1] ? match[1] : null;
+		};
+
+		const tweetId = extractTweetId(url);
+		if (!tweetId) throw new Error(`failed to get tweet id from url: ${url}`);
+
+		const tweet = await this.findTweetById(tweetId);
+		return {
+			title: `title: ${tweet.content.slice(0, 50)}...`,
+			content: tweet.content,
+			datetime: parseDateTime(tweet.createdAt),
+		};
+	};
 
 	#handleRespErr(resp: { errors?: any }, errMsg: string) {
 		if (!resp.errors) return;
