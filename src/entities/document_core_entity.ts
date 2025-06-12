@@ -45,6 +45,6 @@ export class DocumentCore {
 	constructor(fileName: string, filePath?: string, category?: DocumentCategory) {
 		this.fileName = fileName;
 		this.filePath = filePath;
-		this.category = category;
+		this.category = category || DocumentCategory.UNDEFINED;
 	}
 }

@@ -1,4 +1,4 @@
-import { getChatHistoryByRefId, DocumentCore, DocumentChunk } from "../../entities";
+import { DocumentChunk, DocumentCore, getChatHistoryByRefId } from "../../entities";
 import type { ILLMModel } from "../../models";
 import { Env } from "../../utils/env";
 import logger from "../../utils/logger";
@@ -67,32 +67,27 @@ export const cheerWork = async (ctx: WorkflowContext): Promise<Error | null> => 
 };
 
 const cheeringReply = async (
-        ctx: WorkflowContext,
-        tweet: { id: string; content: string },
+	ctx: WorkflowContext,
+	tweet: { id: string; content: string },
 ): Promise<{ id: string; content: string }> => {
-        const emodel = ctx.models.embed as ILLMModel;
+	const emodel = ctx.models.embed as ILLMModel;
 
-        // Fetch articles from the tweet content
-        const contentFetchers = new Map<string, ContentFetcher>();
-        contentFetchers.set("twitter.com", ctx.twitter.tweetContentFetcher);
-        contentFetchers.set("x.com", ctx.twitter.tweetContentFetcher);
-        const articles = await fetchArticlesFromText(tweet.content, contentFetchers);
+	// Fetch articles from the tweet content
+	const articles = await fetchArticlesFromText(tweet.content, ctx.twitter.contentFetchers);
+	let query = tweet.content;
+	let fetchedWebContent = "";
+	for (const art of articles) {
+		if (art.type === ContentType.Web) {
+			fetchedWebContent += `${art.content}\n`;
+			await saveWebArticle(ctx, tweet.id, art.title, art.content);
+		} else if (art.type === ContentType.Tweet) {
+			query += `\n${art.content}`;
+		}
+	}
 
-        let query = tweet.content;
-        let fetchedWebContent = "";
-
-        for (const art of articles) {
-                if (art.type === ContentType.Web) {
-                        fetchedWebContent += `${art.content}\n`;
-                        await saveWebArticle(ctx, art.title, art.content);
-                } else if (art.type === ContentType.Tweet) {
-                        query += `\n${art.content}`;
-                }
-        }
-
-        // Retrieve relevant knowledge from the database using the combined query
-        const dbKnowledge = await lookupKnowledge(emodel, ctx.db, query);
-        const knowledge = fetchedWebContent + dbKnowledge;
+	// Retrieve relevant knowledge from the database using the combined query
+	const dbKnowledge = await lookupKnowledge(emodel, ctx.db, query);
+	const knowledge = fetchedWebContent + dbKnowledge;
 
 	// Infer the assistant reply
 	const model = ctx.models[ctx.state.name] as ILLMModel;
@@ -104,24 +99,26 @@ const cheeringReply = async (
 	// Add assistant reply to memory
 	await ctx.memory.add(ctx.memory.ownId, assistantRely, id, { referenceId: tweet.id });
 
-        return { id, content: assistantRely };
+	return { id, content: assistantRely };
 };
 
 const saveWebArticle = async (
-        ctx: WorkflowContext,
-        title: string,
-        content: string,
+	ctx: WorkflowContext,
+	tweetId: string,
+	title: string,
+	content: string,
 ): Promise<void> => {
-        await ctx.db.makeTransaction(async (queryRunner) => {
-                const core = new DocumentCore(title);
-                core.content = content;
-                await queryRunner.manager.save(core);
+	await ctx.db.makeTransaction(async (queryRunner) => {
+		const core = new DocumentCore(title);
+		core.content = content;
+		await queryRunner.manager.save(core);
 
-                const chunk = new DocumentChunk((ctx.models.embed as ILLMModel).name(), content, core);
-                const embeds = await (ctx.models.embed as ILLMModel).embed(content);
-                chunk.embedding = `[${embeds.join(",")}]`;
-                await queryRunner.manager.save(chunk);
-        });
+		const emodel = ctx.models.embed as ILLMModel;
+		const chunk = new DocumentChunk(emodel.name(), content, core, { tweetId });
+		const embeds = await emodel.embed(content);
+		chunk.embedding = `[${embeds.join(",")}]`;
+		await queryRunner.manager.save(chunk);
+	});
 };
 
 const filterNewTweet = async (
