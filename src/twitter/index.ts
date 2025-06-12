@@ -7,7 +7,7 @@ import { Env } from "../utils/env";
 import { readFromFile, writeToFile } from "../utils/file";
 import logger from "../utils/logger";
 import { sleepCancelable } from "../utils/sleep";
-import { ContentType } from "../utils/web";
+import { type ContentFetcher, ContentType } from "../utils/web";
 import { startServer } from "./server";
 
 export class Twitter {
@@ -21,6 +21,7 @@ export class Twitter {
 	#closing = false;
 	ownId: string | undefined;
 	client: Client;
+	contentFetchers: Map<string, ContentFetcher>;
 
 	static readonly MAX_TWEET_LENGTH = 280;
 
@@ -59,6 +60,9 @@ export class Twitter {
 		if (opts.ownId) this.ownId = opts.ownId;
 		if (opts.host) this.#host = opts.host;
 		if (opts.port) this.#port = opts.port;
+		this.contentFetchers = new Map<string, ContentFetcher>();
+		this.contentFetchers.set("twitter.com", this.tweetContentFetcher);
+		this.contentFetchers.set("x.com", this.tweetContentFetcher);
 	}
 
 	static create(useBear = false): Twitter {

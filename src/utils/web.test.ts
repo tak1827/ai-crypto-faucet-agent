@@ -36,12 +36,9 @@ test("fetchArticlesFromText extracts all URLs", async () => {
 	twitter.startOAuthServer();
 	await twitter.waitLogin();
 
-	const contentFetchers = new Map<string, ContentFetcher>();
-	contentFetchers.set("twitter.com", twitter.tweetContentFetcher);
-	contentFetchers.set("x.com", twitter.tweetContentFetcher);
 	const text =
 		"https://docs.oasys.games/docs/tech-docs/users/faq 🔥 AMA with Seraph x KAIB3K! 🔥\n Join us for an exciting game demo AMA with Seraph, and KAI: Battle of Three Kingdoms, 2 of the top games on BNB ecosystem!\n📅 June 16\n⏰ 12:00 UTC\n📍https://t.co/1KQb8dyKdW\n\nWe’re giving away 50 Da Qiao NFTs + 5 Seraph items (worth ~$50 each)! https://t.co/h5SkpZv8ES";
-	const articles = await fetchArticlesFromText(text, contentFetchers);
+	const articles = await fetchArticlesFromText(text, twitter.contentFetchers);
 	console.log("Fetched articles", articles);
 
 	// expected 2, one is article, one is tweet, one is not a valid URL
