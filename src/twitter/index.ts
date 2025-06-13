@@ -319,6 +319,11 @@ export class Twitter {
 		type: ContentType;
 		datetime?: Date;
 	}> => {
+		// Skip if the URL is photo
+		if (url.includes("/photo/")) {
+			throw new Error(`photo URL is not supported: ${url}`);
+		}
+
 		const extractTweetId = (url: string): string | null => {
 			const match = url.match(/\/status\/(\d+)/);
 			return match && match.length > 1 && match[1] ? match[1] : null;
@@ -329,7 +334,7 @@ export class Twitter {
 
 		const tweet = await this.findTweetById(tweetId);
 		return {
-			title: `title: ${tweet.content.slice(0, 50)}...`,
+			title: `tweetId: ${tweetId}`,
 			content: tweet.content,
 			type: ContentType.Tweet,
 			datetime: parseDateTime(tweet.createdAt),
