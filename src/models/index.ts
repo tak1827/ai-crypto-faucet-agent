@@ -112,7 +112,7 @@ export const rerank = async (
 		if (!conf) return [];
 		return rows.map((r: any) => ({
 			text: r[conf.textColumn] as string,
-			updatedAt: r.updated_at as Date,
+			updatedAt: r.updatedAt as Date,
 			distance: r._distance ?? 1,
 			source: conf.source,
 		}));
