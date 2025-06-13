@@ -50,16 +50,14 @@ export class WorkflowManager {
 	async close() {
 		logger.info("closing workflow manager...");
 		this.#closing = true;
-		if (this.#running) {
-			// forcefully stop after `timeoutMs` ms
-			const timeoutMs = 10_000;
-			const forceExiter = setTimeout(() => {
-				logger.warn(`forcefully stopping workflow manager after timeout: ${timeoutMs}ms`);
-				process.exit(0);
-			}, timeoutMs);
-			// Wait for the interval to stop
-			await this.#waitClosed(forceExiter);
-		}
+		// forcefully stop after `timeoutMs` ms
+		const timeoutMs = 10_000;
+		const forceExiter = setTimeout(() => {
+			logger.warn(`forcefully stopping workflow manager after timeout: ${timeoutMs}ms`);
+			process.exit(0);
+		}, timeoutMs);
+		// Wait for the interval to stop
+		if (this.#running) await this.#waitClosed(forceExiter);
 	}
 
 	public async start(): Promise<void> {
