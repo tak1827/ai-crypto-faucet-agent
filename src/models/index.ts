@@ -75,50 +75,56 @@ export type RerankResult = {
         text: string;
         updatedAt: Date;
         _distance: number;
-        source: "chat_history" | "document_chunk";
+        source: string;
+};
+
+export type RerankSearchConfig = {
+        tableName: string;
+        vectorColumn: string;
+        source: string;
+        textColumn: string;
+        dateColumn: string;
+        filter?: { [key: string]: any };
+        whereQuery?: string;
+};
+
+export type RerankWeight = {
+        distance: number;
+        recency: number;
 };
 
 export const rerank = async (
         model: ILLMModel,
         db: Database,
         query: string,
-        ownId: string,
+        searches: RerankSearchConfig[],
+        weight: RerankWeight = { distance: 0.7, recency: 0.3 },
         topK = 3,
 ): Promise<RerankResult[]> => {
         const embedding = await model.embed(query);
 
-        const [chats, docs] = await Promise.all([
-                db.vectorSearch<ChatHistory[]>(
-                        "chat_history",
-                        "embedding",
-                        embedding,
-                        topK,
-                        undefined,
-                        `identifier <> '${ownId}'`,
+        const results = await Promise.all(
+                searches.map((s) =>
+                        db.vectorSearch<any>(
+                                s.tableName,
+                                s.vectorColumn,
+                                embedding,
+                                topK,
+                                s.filter,
+                                s.whereQuery,
+                        ),
                 ),
-                db.vectorSearch<DocumentChunk[]>(
-                        "document_chunk",
-                        "embedding",
-                        embedding,
-                        topK,
-                        {},
-                ),
-        ]);
+        );
 
-        const merged: RerankResult[] = [
-                ...chats.map((c) => ({
-                        text: c.content,
-                        updatedAt: c.updatedAt,
-                        _distance: c._distance ?? 0,
-                        source: "chat_history" as const,
-                })),
-                ...docs.map((d) => ({
-                        text: d.chunk,
-                        updatedAt: d.updatedAt,
-                        _distance: d._distance ?? 0,
-                        source: "document_chunk" as const,
-                })),
-        ];
+        const merged: RerankResult[] = results.flatMap((rows, idx) => {
+                const conf = searches[idx];
+                return rows.map((r: any) => ({
+                        text: r[conf.textColumn] as string,
+                        updatedAt: r[conf.dateColumn] as Date,
+                        _distance: r._distance ?? 0,
+                        source: conf.source,
+                }));
+        });
 
         if (merged.length === 0) return [];
 
@@ -134,7 +140,7 @@ export const rerank = async (
                 .map((m) => {
                         const normDist = 1 - (m._distance - minDist) / rangeDist;
                         const normDate = (m.updatedAt.getTime() - minDate) / rangeDate;
-                        const score = 0.7 * normDist + 0.3 * normDate;
+                        const score = weight.distance * normDist + weight.recency * normDate;
                         return { ...m, score };
                 })
                 .sort((a, b) => b.score - a.score);
