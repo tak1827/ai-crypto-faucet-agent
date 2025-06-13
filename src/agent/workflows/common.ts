@@ -52,3 +52,31 @@ export const lookupKnowledge = async (
 	// Concatenate the content of the top K chunks
 	return entities.map((e) => e.chunk).join("\n");
 };
+
+export const lookupAllKnowledge = async (
+	model: ILLMModel,
+	db: Database,
+	query: string,
+	topK = 3,
+): Promise<string> => {
+	const embedding = await model.embed(query);
+
+	// Search by cosin similality
+	const entities = await db.vectorSearchTables(
+		[
+			{ tableName: "chat_history", textCol: "content" },
+			{ tableName: "document_chunk", textCol: "chunk" },
+		],
+		embedding,
+		topK,
+	);
+
+	// Log content
+	const concatedContent = entities.reduce((acc, entity) => {
+		return `${acc}\n${entity.text.substring(0, 100)}`;
+	}, "");
+	logger.debug(`Retrieved ${entities.length} entities. Content: ${concatedContent}`);
+
+	// Concatenate the content of the top K chunks
+	return entities.map((e) => e.text).join("\n");
+};

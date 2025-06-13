@@ -5,7 +5,7 @@ import logger from "../../utils/logger";
 import { type ContentFetcher, ContentType, fetchArticlesFromText } from "../../utils/web";
 import { replyCheer } from "../infers/cheer";
 import type { BaseWorkflowContext, WorkflowContext, WorkflowState } from "../workflow_manager";
-import { handleErrors, lookupKnowledge, validateStateName } from "./common";
+import { handleErrors, lookupAllKnowledge, lookupKnowledge, validateStateName } from "./common";
 
 export type CheerState = WorkflowState & {
 	name: "cheer";
@@ -74,26 +74,26 @@ const cheeringReply = async (
 
 	// Fetch articles from the tweet content
 	const articles = await fetchArticlesFromText(tweet.content, ctx.twitter.contentFetchers);
-	let query = tweet.content;
+	let extendContent = tweet.content;
 	let fetchedWebContent = "";
 	for (const art of articles) {
 		if (art.type === ContentType.Web) {
-			logger.debug(`Fetched web content: ${art.title}`);
+			logger.debug(`Fetched web title: ${art.title}`);
 			fetchedWebContent += `${art.content}\n`;
 			await saveWebArticle(ctx, tweet.id, art.title, art.content);
 		} else if (art.type === ContentType.Tweet) {
-			logger.debug(`Fetched tweet content: ${art.title}`);
-			query += `\n${art.content}`;
+			logger.debug(`Fetched tweet title: ${art.title}`);
+			extendContent += `\n${art.content}`;
 		}
 	}
 
 	// Retrieve relevant knowledge from the database using the combined query
-	const dbKnowledge = await lookupKnowledge(emodel, ctx.db, query);
+	const dbKnowledge = await lookupAllKnowledge(emodel, ctx.db, extendContent, 5);
 	const knowledge = fetchedWebContent + dbKnowledge;
 
 	// Infer the assistant reply
 	const model = ctx.models[ctx.state.name] as ILLMModel;
-	const assistantRely = await replyCheer(model, tweet.content, knowledge);
+	const assistantRely = await replyCheer(model, extendContent, knowledge);
 
 	// Post the reply to Twitter
 	const { id } = await ctx.twitter.createTweet(assistantRely, tweet.id);
