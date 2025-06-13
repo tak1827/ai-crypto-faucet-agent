@@ -50,20 +50,29 @@ export class WorkflowManager {
 	async close() {
 		logger.info("closing workflow manager...");
 		this.#closing = true;
-		if (this.#running) await this.#waitClosed();
+		if (this.#running) {
+			// forcefully stop after `timeoutMs` ms
+			const timeoutMs = 10_000;
+			const forceExiter = setTimeout(() => {
+				logger.warn(`forcefully stopping workflow manager after timeout: ${timeoutMs}ms`);
+				process.exit(0);
+			}, timeoutMs);
+			// Wait for the interval to stop
+			await this.#waitClosed(forceExiter);
+		}
 	}
 
 	public async start(): Promise<void> {
 		this.#running = true;
-		this.#closing = false;
 
 		return new Promise((resolve) => {
 			this.#setExpireAll(Date.now());
 			this.#interval = setInterval(async () => {
 				// Stop the interval if closing
 				if (this.#closing) {
-					this.#running = false;
 					clearInterval(this.#interval);
+					this.#interval = undefined;
+					this.#running = false;
 					logger.info("workflow mangager interval stopped");
 					resolve();
 					return;
@@ -113,11 +122,13 @@ export class WorkflowManager {
 		return state;
 	}
 
-	async #waitClosed(): Promise<void> {
+	async #waitClosed(forceExiter: Timer): Promise<void> {
 		return new Promise((resolve) => {
 			const interval = setInterval(() => {
 				if (!this.#running) {
 					clearInterval(interval);
+					clearTimeout(forceExiter);
+					this.#closing = false;
 					resolve();
 				}
 			}, WORKFLOW_INTERVAL);
