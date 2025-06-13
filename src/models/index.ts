@@ -1,4 +1,6 @@
 import { Env } from "../utils/env";
+import type { Database } from "../db";
+import { ChatHistory, DocumentChunk } from "../entities";
 import { LLamaCppModel } from "./llamacpp";
 import { LlamaCppClient } from "./llamacpp_client";
 
@@ -60,13 +62,84 @@ export const createInitalizedModel = async (modelName?: string): Promise<ILLMMod
 };
 
 export const createInitalizedEmbModel = async (modelName?: string): Promise<ILLMModel> => {
-	if (modelName === LlamaCppClient.name) {
-		const host = Env.string("LLM_SERVER_HOST");
-		const port = Env.number("LLM_SERVER_PORT");
-		const token = Env.string("LLM_SERVER_TOKEN");
-		return await new LlamaCppClient(host, port, token).init();
-	}
-	return await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")).init();
+        if (modelName === LlamaCppClient.name) {
+                const host = Env.string("LLM_SERVER_HOST");
+                const port = Env.number("LLM_SERVER_PORT");
+                const token = Env.string("LLM_SERVER_TOKEN");
+                return await new LlamaCppClient(host, port, token).init();
+        }
+        return await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")).init();
+};
+
+export type RerankResult = {
+        text: string;
+        updatedAt: Date;
+        _distance: number;
+        source: "chat_history" | "document_chunk";
+};
+
+export const rerank = async (
+        model: ILLMModel,
+        db: Database,
+        query: string,
+        ownId: string,
+        topK = 3,
+): Promise<RerankResult[]> => {
+        const embedding = await model.embed(query);
+
+        const [chats, docs] = await Promise.all([
+                db.vectorSearch<ChatHistory[]>(
+                        "chat_history",
+                        "embedding",
+                        embedding,
+                        topK,
+                        undefined,
+                        `identifier <> '${ownId}'`,
+                ),
+                db.vectorSearch<DocumentChunk[]>(
+                        "document_chunk",
+                        "embedding",
+                        embedding,
+                        topK,
+                        {},
+                ),
+        ]);
+
+        const merged: RerankResult[] = [
+                ...chats.map((c) => ({
+                        text: c.content,
+                        updatedAt: c.updatedAt,
+                        _distance: c._distance ?? 0,
+                        source: "chat_history" as const,
+                })),
+                ...docs.map((d) => ({
+                        text: d.chunk,
+                        updatedAt: d.updatedAt,
+                        _distance: d._distance ?? 0,
+                        source: "document_chunk" as const,
+                })),
+        ];
+
+        if (merged.length === 0) return [];
+
+        const maxDist = Math.max(...merged.map((m) => m._distance));
+        const minDist = Math.min(...merged.map((m) => m._distance));
+        const maxDate = Math.max(...merged.map((m) => m.updatedAt.getTime()));
+        const minDate = Math.min(...merged.map((m) => m.updatedAt.getTime()));
+
+        const rangeDist = maxDist - minDist || 1;
+        const rangeDate = maxDate - minDate || 1;
+
+        const scored = merged
+                .map((m) => {
+                        const normDist = 1 - (m._distance - minDist) / rangeDist;
+                        const normDate = (m.updatedAt.getTime() - minDate) / rangeDate;
+                        const score = 0.7 * normDist + 0.3 * normDate;
+                        return { ...m, score };
+                })
+                .sort((a, b) => b.score - a.score);
+
+        return scored.slice(0, topK).map(({ score, ...rest }) => rest);
 };
 
 export { LlamaCppClient, LLamaCppModel };
