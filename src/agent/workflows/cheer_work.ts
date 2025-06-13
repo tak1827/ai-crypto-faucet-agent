@@ -78,9 +78,11 @@ const cheeringReply = async (
 	let fetchedWebContent = "";
 	for (const art of articles) {
 		if (art.type === ContentType.Web) {
+			logger.debug(`Fetched web content: ${art.title}`);
 			fetchedWebContent += `${art.content}\n`;
 			await saveWebArticle(ctx, tweet.id, art.title, art.content);
 		} else if (art.type === ContentType.Tweet) {
+			logger.debug(`Fetched tweet content: ${art.title}`);
 			query += `\n${art.content}`;
 		}
 	}
