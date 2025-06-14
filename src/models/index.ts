@@ -98,12 +98,20 @@ export const rerank = async (
 	searches: RerankSearchConfig[],
 	weight: RerankWeight = { distance: 0.7, recency: 0.3 },
 	topK = 3,
+	topKOfEachTable = 5,
 ): Promise<RerankResult[]> => {
 	const embedding = await model.embed(query);
 
 	const results = await Promise.all(
 		searches.map((s) =>
-			db.vectorSearch<any>(s.tableName, "embedding", embedding, topK, s.filter, s.whereQuery),
+			db.vectorSearch<any>(
+				s.tableName,
+				"embedding",
+				embedding,
+				topKOfEachTable,
+				s.filter,
+				s.whereQuery,
+			),
 		),
 	);
 

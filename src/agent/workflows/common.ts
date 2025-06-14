@@ -1,6 +1,6 @@
 import type { Database } from "../../db";
 import { type DocumentChunk, DocumentCore } from "../../entities";
-import type { ILLMModel } from "../../models";
+import { type ILLMModel, type RerankSearchConfig, rerank } from "../../models";
 import logger from "../../utils/logger";
 import type { WorkflowState } from "../workflow_manager";
 
@@ -79,4 +79,42 @@ export const lookupAllKnowledge = async (
 
 	// Concatenate the content of the top K chunks
 	return entities.map((e) => e.text).join("\n");
+};
+
+export const lookupRerankedKnowledge = async (
+	model: ILLMModel,
+	db: Database,
+	query: string,
+	ownId: string,
+	topK?: number,
+	topKOfEachTable?: number,
+): Promise<string> => {
+	const searchConfigs: RerankSearchConfig[] = [
+		{
+			tableName: "chat_history",
+			source: "chat",
+			textColumn: "content",
+			whereQuery: `identifier <> '${ownId}'`,
+		},
+		{ tableName: "document_chunk", source: "doc", textColumn: "chunk" },
+	];
+
+	const results = await rerank(
+		model,
+		db,
+		query,
+		searchConfigs,
+		{ distance: 0.7, recency: 0.3 },
+		topK,
+		topKOfEachTable,
+	);
+
+	// log the results
+	const concatedContent = results.reduce((acc, result) => {
+		return `${acc}\n source: ${result.source}, score: ${result.score}, content: ${result.text.substring(0, 100)}`;
+	}, "");
+	logger.debug(`Reranked: ${concatedContent}`);
+
+	// Concatenate the content of the top K chunks
+	return results.map((r) => r.text).join("\n");
 };

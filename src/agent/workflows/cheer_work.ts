@@ -5,7 +5,7 @@ import logger from "../../utils/logger";
 import { type ContentFetcher, ContentType, fetchArticlesFromText } from "../../utils/web";
 import { replyCheer } from "../infers/cheer";
 import type { BaseWorkflowContext, WorkflowContext, WorkflowState } from "../workflow_manager";
-import { handleErrors, lookupAllKnowledge, lookupKnowledge, validateStateName } from "./common";
+import { handleErrors, lookupRerankedKnowledge, validateStateName } from "./common";
 
 export type CheerState = WorkflowState & {
 	name: "cheer";
@@ -79,7 +79,7 @@ const cheeringReply = async (
 	for (const art of articles) {
 		if (art.type === ContentType.Web) {
 			logger.debug(`Fetched web title: ${art.title}`);
-			fetchedWebContent += `${art.content}\n`;
+			fetchedWebContent += art.content;
 			await saveWebArticle(ctx, tweet.id, art.title, art.content);
 		} else if (art.type === ContentType.Tweet) {
 			logger.debug(`Fetched tweet title: ${art.title}`);
@@ -88,8 +88,13 @@ const cheeringReply = async (
 	}
 
 	// Retrieve relevant knowledge from the database using the combined query
-	const dbKnowledge = await lookupAllKnowledge(emodel, ctx.db, extendContent, 5);
-	const knowledge = fetchedWebContent + dbKnowledge;
+	const dbKnowledge = await lookupRerankedKnowledge(
+		emodel,
+		ctx.db,
+		extendContent,
+		ctx.memory.ownId,
+	);
+	const knowledge = `${fetchedWebContent}\n${dbKnowledge}`;
 
 	// Infer the assistant reply
 	const model = ctx.models[ctx.state.name] as ILLMModel;
