@@ -99,13 +99,12 @@ export const lookupRerankedKnowledge = async (
 		docWhereQuery?: string;
 	} = {},
 ): Promise<string> => {
-	console.log("lookupRerankedKnowledge", opts);
 	const searchConfigs: RerankSearchConfig[] = [
 		{
 			tableName: "chat_history",
 			source: "chat",
 			textColumn: "content",
-			whereQuery: opts.docWhereQuery,
+			whereQuery: opts.chatWhereQuery,
 		},
 		{
 			tableName: "document_chunk",

@@ -101,7 +101,6 @@ export class Database {
 		filter?: { [key: string]: any },
 		whereQuery?: string,
 	): Promise<T> {
-		console.log("vectorSearch", whereQuery, filter);
 		// build where clause
 		const whereParts = [] as string[];
 		if (tableName === "document_chunk") whereParts.push("metadata @> $3");

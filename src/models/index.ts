@@ -101,7 +101,6 @@ export const rerank = async (
 	topK = 3,
 	topKOfEachTable = 5,
 ): Promise<RerankResult[]> => {
-	console.log("rerank", searches)
 	const embedding = await model.embed(query);
 
 	const results = await Promise.all(
