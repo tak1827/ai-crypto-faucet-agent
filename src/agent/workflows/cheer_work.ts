@@ -2,7 +2,7 @@ import { DocumentChunk, DocumentCore, getChatHistoryByRefId } from "../../entiti
 import type { ILLMModel } from "../../models";
 import { Env } from "../../utils/env";
 import logger from "../../utils/logger";
-import { type ContentFetcher, ContentType, fetchArticlesFromText } from "../../utils/web";
+import { ContentType, fetchArticlesFromText } from "../../utils/web";
 import { replyCheer } from "../infers/cheer";
 import type { BaseWorkflowContext, WorkflowContext, WorkflowState } from "../workflow_manager";
 import { handleErrors, lookupRerankedKnowledge, validateStateName } from "./common";

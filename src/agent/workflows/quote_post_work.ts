@@ -6,7 +6,7 @@ import logger from "../../utils/logger";
 import { randSelect } from "../../utils/rand";
 import { instructedQuotePostInfer } from "../infers/quote_post_instruction";
 import type { BaseWorkflowContext, WorkflowContext, WorkflowState } from "../workflow_manager";
-import { handleErrors, lookupKnowledge, validateStateName } from "./common";
+import { handleErrors, lookupRerankedKnowledge, validateStateName } from "./common";
 
 export type QuotePostState = WorkflowState & {
 	name: "quote-post";
@@ -42,7 +42,7 @@ export const quotePostWork = async (ctx: WorkflowContext): Promise<Error | null>
 
 	// Randomly select an unquoted tweet
 	const quoting = randSelect<{ id: string; content: string }>(unquoteds);
-	logger.info(`Selected unquoted tweet: ${quoting.content.substring(0, 40)}...`);
+	logger.info(`Selected unquoted tweet: ${quoting.content.substring(0, 200)}...`);
 
 	try {
 		// QuotePost the tweet
@@ -53,7 +53,7 @@ export const quotePostWork = async (ctx: WorkflowContext): Promise<Error | null>
 		await ctx.memory.commit();
 	} catch (err) {
 		const newErr = new Error(
-			`${(err as Error).message} quoting: ${quoting.content.substring(0, 40)}...`,
+			`${(err as Error).message} quoting: ${quoting.content.substring(0, 50)}...`,
 		);
 		// Immediately stop if closing
 		if ((err as Error).message.startsWith("closing!")) throw newErr;
@@ -93,7 +93,13 @@ const quotePostTweet = async (
 ): Promise<{ id: string; content: string }> => {
 	// Retrieve relevant knowledge from the database
 	const emodel = ctx.models.embed as ILLMModel;
-	const knowledge = await lookupKnowledge(emodel, ctx.db, quoting.content);
+	const knowledge = await lookupRerankedKnowledge(
+		emodel,
+		ctx.db,
+		ctx.memory.ownId,
+		quoting.content,
+		{ distance: 0.7, recency: 0.3 },
+	);
 
 	// Infer the assistant reply
 	const model = ctx.models[ctx.state.name] as ILLMModel;
