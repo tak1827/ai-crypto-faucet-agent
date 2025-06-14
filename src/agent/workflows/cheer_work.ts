@@ -88,16 +88,11 @@ const cheeringReply = async (
 	}
 
 	// Retrieve relevant knowledge from the database using the combined query
-	const dbKnowledge = await lookupRerankedKnowledge(
-		emodel,
-		ctx.db,
-		extendContent,
-		ctx.memory.ownId,
-		{
-			weight: { distance: 0.8, recency: 0.2 },
-			scoreThreshold: 0.7,
-		},
-	);
+	const dbKnowledge = await lookupRerankedKnowledge(emodel, ctx.db, extendContent, {
+		weight: { distance: 0.8, recency: 0.2 },
+		scoreThreshold: 0.7,
+		chatWhereQuery: `identifier <> '${ctx.memory.ownId}'`,
+	});
 	const knowledge = `${fetchedWebContent}\n${dbKnowledge}`;
 
 	// Infer the assistant reply

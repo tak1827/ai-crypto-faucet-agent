@@ -90,12 +90,13 @@ export const lookupRerankedKnowledge = async (
 	model: ILLMModel,
 	db: Database,
 	query: string,
-	ownId: string,
 	opts: {
 		weight?: RerankWeight;
 		scoreThreshold?: number;
 		topK?: number;
 		topKOfEachTable?: number;
+		chatWhereQuery?: string;
+		docWhereQuery?: string;
 	} = {},
 ): Promise<string> => {
 	const searchConfigs: RerankSearchConfig[] = [
@@ -103,9 +104,14 @@ export const lookupRerankedKnowledge = async (
 			tableName: "chat_history",
 			source: "chat",
 			textColumn: "content",
-			whereQuery: `identifier <> '${ownId}'`,
+			whereQuery: opts.docWhereQuery,
 		},
-		{ tableName: "document_chunk", source: "doc", textColumn: "chunk" },
+		{
+			tableName: "document_chunk",
+			source: "doc",
+			textColumn: "chunk",
+			whereQuery: opts.docWhereQuery,
+		},
 	];
 
 	const results = await rerank(

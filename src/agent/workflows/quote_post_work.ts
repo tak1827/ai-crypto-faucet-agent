@@ -42,7 +42,9 @@ export const quotePostWork = async (ctx: WorkflowContext): Promise<Error | null>
 
 	// Randomly select an unquoted tweet
 	const quoting = randSelect<{ id: string; content: string }>(unquoteds);
-	logger.info(`Selected unquoted tweet: ${quoting.content.substring(0, 200)}...`);
+	logger.info(
+		`Selected quoting tweet: ${quoting.id}, contents: ${quoting.content.substring(0, 200)}...`,
+	);
 
 	try {
 		// QuotePost the tweet
@@ -93,16 +95,11 @@ const quotePostTweet = async (
 ): Promise<{ id: string; content: string }> => {
 	// Retrieve relevant knowledge from the database
 	const emodel = ctx.models.embed as ILLMModel;
-	const knowledge = await lookupRerankedKnowledge(
-		emodel,
-		ctx.db,
-		quoting.content,
-		ctx.memory.ownId,
-		{
-			weight: { distance: 0.7, recency: 0.3 },
-			topK: 4,
-		},
-	);
+	const knowledge = await lookupRerankedKnowledge(emodel, ctx.db, quoting.content, {
+		weight: { distance: 0.7, recency: 0.3 },
+		topK: 4,
+		chatWhereQuery: `identifier <> '${ctx.memory.ownId}' AND externalId <> '${quoting.id}'`,
+	});
 
 	// Infer the assistant reply
 	const model = ctx.models[ctx.state.name] as ILLMModel;
