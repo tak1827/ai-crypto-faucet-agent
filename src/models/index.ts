@@ -97,6 +97,7 @@ export const rerank = async (
 	query: string,
 	searches: RerankSearchConfig[],
 	weight: RerankWeight = { distance: 0.7, recency: 0.3 },
+	scoreThreshold = 0.5,
 	topK = 3,
 	topKOfEachTable = 5,
 ): Promise<RerankResult[]> => {
@@ -145,7 +146,7 @@ export const rerank = async (
 		})
 		.sort((a, b) => b.score - a.score);
 
-	return scored.slice(0, topK);
+	return scored.slice(0, topK).filter((r) => r.score >= scoreThreshold);
 };
 
 export { LlamaCppClient, LLamaCppModel };

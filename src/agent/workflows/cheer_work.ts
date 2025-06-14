@@ -93,6 +93,7 @@ const cheeringReply = async (
 		ctx.db,
 		extendContent,
 		ctx.memory.ownId,
+		0.6,
 	);
 	const knowledge = `${fetchedWebContent}\n${dbKnowledge}`;
 

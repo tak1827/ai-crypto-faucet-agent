@@ -86,6 +86,7 @@ export const lookupRerankedKnowledge = async (
 	db: Database,
 	query: string,
 	ownId: string,
+	scoreThreshold?: number,
 	topK?: number,
 	topKOfEachTable?: number,
 ): Promise<string> => {
@@ -105,6 +106,7 @@ export const lookupRerankedKnowledge = async (
 		query,
 		searchConfigs,
 		{ distance: 0.7, recency: 0.3 },
+		scoreThreshold,
 		topK,
 		topKOfEachTable,
 	);
