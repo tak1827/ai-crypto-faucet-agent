@@ -98,7 +98,7 @@ const quotePostTweet = async (
 	const knowledge = await lookupRerankedKnowledge(emodel, ctx.db, quoting.content, {
 		weight: { distance: 0.7, recency: 0.3 },
 		topK: 4,
-		chatWhereQuery: `identifier <> '${ctx.memory.ownId}' AND chat_history.externalId <> '${quoting.id}'`,
+		chatWhereQuery: `identifier <> '${ctx.memory.ownId}' AND "externalId" <> '${quoting.id}'`,
 	});
 
 	// Infer the assistant reply
