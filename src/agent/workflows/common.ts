@@ -113,7 +113,7 @@ export const lookupRerankedKnowledge = async (
 
 	// log the results
 	const concatedContent = results.reduce((acc, result) => {
-		return `${acc}\n source: ${result.source}, score: ${result.score}, content: ${result.text.substring(0, 100)}`;
+		return `${acc}\n--------------\nscore: ${result.score}, source: ${result.source}, content: ${result.text.substring(0, 200)}`;
 	}, "");
 	logger.debug(`Reranked: ${concatedContent}`);
 
