@@ -1,6 +1,11 @@
 import type { Database } from "../../db";
 import { type DocumentChunk, DocumentCore } from "../../entities";
-import { type ILLMModel, type RerankSearchConfig, rerank } from "../../models";
+import {
+	type ILLMModel,
+	type RerankSearchConfig,
+	type RerankWeight,
+	rerank,
+} from "../../models";
 import logger from "../../utils/logger";
 import type { WorkflowState } from "../workflow_manager";
 
@@ -86,6 +91,7 @@ export const lookupRerankedKnowledge = async (
 	db: Database,
 	query: string,
 	ownId: string,
+	weight: RerankWeight = { distance: 0.7, recency: 0.3 },
 	scoreThreshold?: number,
 	topK?: number,
 	topKOfEachTable?: number,
@@ -105,7 +111,7 @@ export const lookupRerankedKnowledge = async (
 		db,
 		query,
 		searchConfigs,
-		{ distance: 0.7, recency: 0.3 },
+		weight,
 		scoreThreshold,
 		topK,
 		topKOfEachTable,
