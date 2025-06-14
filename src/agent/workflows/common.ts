@@ -91,10 +91,12 @@ export const lookupRerankedKnowledge = async (
 	db: Database,
 	query: string,
 	ownId: string,
-	weight: RerankWeight = { distance: 0.7, recency: 0.3 },
-	scoreThreshold?: number,
-	topK?: number,
-	topKOfEachTable?: number,
+	opts: {
+		weight?: RerankWeight;
+		scoreThreshold?: number;
+		topK?: number;
+		topKOfEachTable?: number;
+	} = {},
 ): Promise<string> => {
 	const searchConfigs: RerankSearchConfig[] = [
 		{
@@ -111,10 +113,10 @@ export const lookupRerankedKnowledge = async (
 		db,
 		query,
 		searchConfigs,
-		weight,
-		scoreThreshold,
-		topK,
-		topKOfEachTable,
+		opts.weight,
+		opts.scoreThreshold,
+		opts.topK,
+		opts.topKOfEachTable,
 	);
 
 	// log the results

@@ -96,9 +96,12 @@ const quotePostTweet = async (
 	const knowledge = await lookupRerankedKnowledge(
 		emodel,
 		ctx.db,
-		ctx.memory.ownId,
 		quoting.content,
-		{ distance: 0.7, recency: 0.3 },
+		ctx.memory.ownId,
+		{
+			weight: { distance: 0.7, recency: 0.3 },
+			topK: 4,
+		},
 	);
 
 	// Infer the assistant reply
