@@ -1,6 +1,10 @@
 import { WorkflowManager, closeBaseCtx, createBaseCtx } from "../agent/workflow_manager";
 import { airdropWork, createAirdropCtx } from "../agent/workflows/airdrop_work";
 import { cheerWork, createCheerCtx } from "../agent/workflows/cheer_work";
+import {
+	cheerWorkSimulation,
+	createCheerSimulationCtx,
+} from "../agent/workflows/cheer_work_simulation";
 import { createEmbeddingCtx, embeddingWork } from "../agent/workflows/embedding_work";
 import { createPostCtx, postWork } from "../agent/workflows/post_work";
 import { createQuotePostCtx, quotePostWork } from "../agent/workflows/quote_post_work";
@@ -16,6 +20,13 @@ async function main() {
 		const ctx = createCheerCtx(baseCtx);
 		const interval = Env.number("WORKFLOW_INTERVAL_CHEER");
 		manager.addWorkflow(interval, cheerWork, ctx, "cheer-work");
+	}
+
+	// Register cheer simulation workflow
+	if (Env.boolean("WORKFLOW_ENABLE_CHEER_SIMULATION")) {
+		const ctx = createCheerSimulationCtx(baseCtx);
+		const interval = Env.number("WORKFLOW_INTERVAL_CHEER_SIMULATION");
+		manager.addWorkflow(interval, cheerWorkSimulation, ctx, "cheer-sim-work");
 	}
 
 	// Register post workflow
