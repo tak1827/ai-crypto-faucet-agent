@@ -58,7 +58,7 @@ const cheeringReplySimulation = async (
 	const dbKnowledge = await lookupRerankedKnowledge(emodel, ctx.db, extendContent, {
 		weight: { distance: 0.8, recency: 0.2 },
 		scoreThreshold: 0.7,
-		chatWhereQuery: `identifier <> '${ctx.memory.ownId}'`,
+		chatWhereQuery: `identifier <> '${ctx.memory.ownId}' AND "externalId" <> '${tweet.id}'`,
 	});
 	const knowledge = `${fetchedWebContent}\n${dbKnowledge}`;
 
