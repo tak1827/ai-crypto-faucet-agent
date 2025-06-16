@@ -115,7 +115,6 @@ export class Database {
 		// build parameters
 		const parameters: any[] = [`[${query.join(",")}]`, k];
 		if (tableName === "document_chunk") parameters.push(filter ?? "{}");
-		logger.debug(`sql: ${sql}`);
 		return await this.appDataSource.query(sql, parameters);
 	}
 
