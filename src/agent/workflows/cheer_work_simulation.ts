@@ -27,11 +27,8 @@ export const cheerWorkSimulation = async (ctx: WorkflowContext): Promise<Error |
 		const tweet = await ctx.twitter.findTweetById(ctx.state.tweetId);
 		logger.info(`Cheer simulation for tweet ${tweet.id}`);
 
-		await ctx.twitter.likeTweet(tweet.id);
-		logger.info(`Liked tweet ${tweet.id}`);
-
 		const { content } = await cheeringReplySimulation(ctx, tweet);
-		logger.info(`Replied to tweet ${tweet.id} with content: ${content}`);
+		logger.info(`Replied to tweet ${tweet.id} with content:\n ${content}`);
 	} catch (err) {
 		logger.warn(err, "Error in cheer simulation work");
 		return err as Error;
@@ -42,7 +39,7 @@ export const cheerWorkSimulation = async (ctx: WorkflowContext): Promise<Error |
 const cheeringReplySimulation = async (
 	ctx: WorkflowContext,
 	tweet: { id: string; content: string },
-): Promise<{ id: string; content: string }> => {
+): Promise<{ content: string }> => {
 	const emodel = ctx.models.embed as ILLMModel;
 
 	const articles = await fetchArticlesFromText(tweet.content, ctx.twitter.contentFetchers);
@@ -68,7 +65,5 @@ const cheeringReplySimulation = async (
 	const model = ctx.models[ctx.state.name] as ILLMModel;
 	const assistantRely = await replyCheer(model, extendContent, knowledge);
 
-	const { id } = await ctx.twitter.createTweet(assistantRely, tweet.id);
-
-	return { id, content: assistantRely };
+	return { content: assistantRely };
 };
