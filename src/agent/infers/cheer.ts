@@ -6,8 +6,6 @@ const PROMPT_TEMPLATE = `You are a tweet reply assistant. Your task is to genera
 Personality: <<-personality->>
 Knowledge (optional): <<-knowledge->>
 Tweet to Reply To: <<-message->>
-
-Goal:
 Respond without preamble: `;
 
 export const replyCheer = async (
