@@ -78,7 +78,7 @@ export class LlamaCppServer {
 					temperature,
 					stopText,
 					onTextChunk: (chunk: string) => {
-						const safeChunk = chunk.replace(/\n\n/g, "[BREAK]");
+						const safeChunk = chunk.replace(/\n/g, "[BREAK]");
 						res.write(`data:${safeChunk}\n\n`);
 					},
 				});
