@@ -1,6 +1,6 @@
-import { on } from "node:events";
 import fs from "node:fs";
 import { basename } from "node:path";
+import { ChatWrapper, JinjaTemplateChatWrapper } from "node-llama-cpp";
 import {
 	type LLamaChatPromptOptions,
 	LlamaChatSession,
@@ -11,6 +11,8 @@ import {
 import type { Embedder, ILLMModel } from ".";
 import logger from "../utils/logger";
 import retry from "../utils/retry";
+
+const template = fs.readFileSync("chat-template.jinja", "utf-8");
 
 export class LLamaCppModel implements ILLMModel {
 	public readonly modelPath: string;
@@ -57,6 +59,7 @@ export class LLamaCppModel implements ILLMModel {
 			contextSequence: this.#context.getSequence(),
 			systemPrompt,
 			autoDisposeSequence: true,
+			chatWrapper: new JinjaTemplateChatWrapper({ template }),
 		});
 	}
 
