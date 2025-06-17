@@ -54,7 +54,7 @@ export const createInitalizedModel = async (modelName?: string): Promise<ILLMMod
 		const token = Env.string("LLM_SERVER_TOKEN");
 		model = await new LlamaCppClient(host, port, token).init();
 	} else {
-		model = await new LLamaCppModel(Env.path("WORKFLOW_MODEL_PATH")).init();
+		model = await new LLamaCppModel(Env.path("LLM_MODEL_PATH")).init();
 	}
 	if (model === undefined) throw new Error(`model ${modelName} not found`);
 	return model;
@@ -67,7 +67,7 @@ export const createInitalizedEmbModel = async (modelName?: string): Promise<ILLM
 		const token = Env.string("LLM_SERVER_TOKEN");
 		return await new LlamaCppClient(host, port, token).init();
 	}
-	return await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")).init();
+	return await new LLamaCppModel(Env.path("LLM_EMBEDDING_MODEL_PATH")).init();
 };
 
 export type RerankResult = {

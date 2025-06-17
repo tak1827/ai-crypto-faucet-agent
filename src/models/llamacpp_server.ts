@@ -29,8 +29,9 @@ export class LlamaCppServer {
 		this.port = port;
 		this.token = token;
 		this.embedTimeout = embedTimeout;
-		this.#inferModel = new LLamaCppModel(Env.path("WORKFLOW_MODEL_PATH"));
-		this.#embedModel = new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH"));
+		const templatePath = process.env.LLM_TEMPLATE_PATH;
+		this.#inferModel = new LLamaCppModel(Env.path("LLM_MODEL_PATH"), { templatePath });
+		this.#embedModel = new LLamaCppModel(Env.path("LLM_EMBEDDING_MODEL_PATH"));
 	}
 
 	async start(): Promise<void> {

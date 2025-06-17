@@ -159,8 +159,8 @@ export const createBaseCtx = async (
 	let model: ILLMModel | undefined;
 	let emodel: ILLMModel | undefined;
 	if (noClient) {
-		model = await new LLamaCppModel(Env.path("WORKFLOW_MODEL_PATH")).init();
-		emodel = await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")).init();
+		model = await new LLamaCppModel(Env.path("LLM_MODEL_PATH")).init();
+		emodel = await new LLamaCppModel(Env.path("LLM_EMBEDDING_MODEL_PATH")).init();
 	} else {
 		model = await createInitalizedModel(LlamaCppClient.name);
 		emodel = model;

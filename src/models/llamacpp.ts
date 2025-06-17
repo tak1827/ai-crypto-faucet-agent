@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { basename } from "node:path";
-import { ChatWrapper, JinjaTemplateChatWrapper } from "node-llama-cpp";
+import { type ChatWrapper, JinjaTemplateChatWrapper } from "node-llama-cpp";
 import {
 	type LLamaChatPromptOptions,
 	LlamaChatSession,
@@ -12,8 +12,6 @@ import type { Embedder, ILLMModel } from ".";
 import logger from "../utils/logger";
 import retry from "../utils/retry";
 
-const template = fs.readFileSync("chat-template.jinja", "utf-8");
-
 export class LLamaCppModel implements ILLMModel {
 	public readonly modelPath: string;
 	#abortController: AbortController = new AbortController();
@@ -24,13 +22,18 @@ export class LLamaCppModel implements ILLMModel {
 		trimWhitespaceSuffix: true,
 		stopOnAbortSignal: true,
 	};
+	#chatWrapper: ChatWrapper | undefined;
 	readonly #modelName: string;
 	#closing = false;
 	readonly #closingError: Error = new Error("closing! no more inference allowed");
 
-	constructor(modelPath: string) {
+	constructor(modelPath: string, opts: { templatePath?: string | undefined } = {}) {
 		this.modelPath = this._validateModelPath(modelPath);
 		this.#modelName = basename(modelPath);
+		if (opts.templatePath)
+			this.#chatWrapper = new JinjaTemplateChatWrapper({
+				template: fs.readFileSync(opts.templatePath, "utf-8"),
+			});
 	}
 
 	public async init(): Promise<ILLMModel> {
@@ -59,7 +62,7 @@ export class LLamaCppModel implements ILLMModel {
 			contextSequence: this.#context.getSequence(),
 			systemPrompt,
 			autoDisposeSequence: true,
-			chatWrapper: new JinjaTemplateChatWrapper({ template }),
+			chatWrapper: this.#chatWrapper || "auto",
 		});
 	}
 

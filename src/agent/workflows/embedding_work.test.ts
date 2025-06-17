@@ -9,7 +9,7 @@ import { embeddingWork } from "./embedding_work";
 
 describe("workflow: embedding", async () => {
 	const db = await new Database(AppDataSource).init();
-	const embed = await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")).init();
+	const embed = await new LLamaCppModel(Env.path("LLM_EMBEDDING_MODEL_PATH")).init();
 	const baseCtx = {
 		db,
 		models: { embed },

@@ -7,7 +7,7 @@ import { AppDataSource } from "./ormconfig";
 
 describe("db: vectorSearch/vectorSearchTables", async () => {
 	const db = await new Database(AppDataSource).init();
-	const emodel = await new LLamaCppModel(Env.path("WORKFLOW_EMBEDDING_MODEL_PATH")).init();
+	const emodel = await new LLamaCppModel(Env.path("LLM_EMBEDDING_MODEL_PATH")).init();
 	const filter = { meta: "traget" };
 
 	beforeAll(async () => {
