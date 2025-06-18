@@ -88,7 +88,7 @@ export class LlamaCppClient implements ILLMModel {
 
 				const chunk = decoder.decode(value, { stream: true });
 				for (const part of chunk.split("\n\n")) {
-					// Remove [BREAK] marker
+					// Replace [BREAK] with \n to recover the original text
 					const cleaned = part.replace(/\[BREAK\]/g, "\n");
 
 					if (cleaned.startsWith("data:")) {
@@ -108,7 +108,7 @@ export class LlamaCppClient implements ILLMModel {
 			if (remaining) result += remaining;
 
 			// Remove reasoning part if exists
-			result = result.replace(/<think>[\s\S]*?<\/think>\n?/, "");
+			result = result.replace(/<think>[\s\S]*?<\/think>\n*/, "");
 			logger.trace(`[llamaclient] final result: ${result}`);
 			return result;
 		} finally {
