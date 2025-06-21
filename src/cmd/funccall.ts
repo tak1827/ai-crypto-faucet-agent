@@ -1,6 +1,7 @@
 import { type ChatSessionModelFunctions, defineChatSessionFunction } from "node-llama-cpp";
 import { createInitalizedModel } from "../models";
 import logger from "../utils/logger";
+import { sleep } from "../utils/sleep";
 
 async function main() {
 	const model = await createInitalizedModel();
@@ -21,13 +22,19 @@ async function main() {
 				},
 			},
 			async handler(params) {
+				logger.info(`handler called with params: ${JSON.stringify(params)}`);
+				logger.info("sleeping for 5 seconds");
+				await sleep(5000);
+				logger.info("done sleeping");
 				const name = params.name.toLowerCase();
-				if (Object.keys(fruitPrices).includes(name))
-					return {
+				if (Object.keys(fruitPrices).includes(name)) {
+					const result = {
 						name: name,
 						price: fruitPrices[name],
 					};
-
+					logger.info(`result: ${JSON.stringify(result)}`);
+					return result;
+				}
 				return `Unrecognized fruit "${params.name}"`;
 			},
 		}),
@@ -38,6 +45,8 @@ async function main() {
 
 	const a1 = await model.infer(q1, { functions });
 	console.log(`AI: ${a1}`);
+
+	await model.close();
 }
 
 main().catch((err) => logger.error(err));
