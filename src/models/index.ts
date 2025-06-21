@@ -54,7 +54,8 @@ export const createInitalizedModel = async (modelName?: string): Promise<ILLMMod
 		const token = Env.string("LLM_SERVER_TOKEN");
 		model = await new LlamaCppClient(host, port, token).init();
 	} else {
-		model = await new LLamaCppModel(Env.path("LLM_MODEL_PATH")).init();
+		const templatePath = process.env.LLM_TEMPLATE_PATH;
+		model = await new LLamaCppModel(Env.path("LLM_MODEL_PATH"), { templatePath }).init();
 	}
 	if (model === undefined) throw new Error(`model ${modelName} not found`);
 	return model;
