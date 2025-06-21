@@ -48,7 +48,7 @@ export const createInitalizedModel = async (modelName?: string): Promise<ILLMMod
 		// const modelName = Env.string('LLM_OPENAI_MODEL')
 		// const embeddingModelName = modelName.split(':')[1]
 		// model = new OpenAIModel({ apiKey, modelName, embeddingModelName })
-	} else if (modelName === LlamaCppClient.name) {
+	} else if (modelName && modelName === LlamaCppClient.name) {
 		const host = Env.string("LLM_SERVER_HOST");
 		const port = Env.number("LLM_SERVER_PORT");
 		const token = Env.string("LLM_SERVER_TOKEN");

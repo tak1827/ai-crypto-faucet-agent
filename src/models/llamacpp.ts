@@ -73,6 +73,7 @@ export class LLamaCppModel implements ILLMModel {
 			stopText?: string[];
 			session?: LlamaChatSession;
 			onTextChunk?: (text: string) => void;
+			functions?: any;
 		},
 	): Promise<string> {
 		if (this.#closing) throw this.#closingError;
@@ -85,6 +86,7 @@ export class LLamaCppModel implements ILLMModel {
 				logger.trace(`prompt chunk: ${text}`);
 				if (opt?.onTextChunk) opt.onTextChunk(text);
 			},
+			functions: opt?.functions,
 		});
 		if (!opt || !opt.session) session.dispose();
 		return result;
