@@ -4,7 +4,6 @@ import {
 	type ChatSessionModelFunctions,
 	type ChatWrapper,
 	JinjaTemplateChatWrapper,
-	QwenChatWrapper,
 } from "node-llama-cpp";
 import {
 	type LLamaChatPromptOptions,
@@ -36,10 +35,9 @@ export class LLamaCppModel implements ILLMModel {
 		this.modelPath = this._validateModelPath(modelPath);
 		this.#modelName = basename(modelPath);
 		if (opts.templatePath)
-			// this.#chatWrapper = new JinjaTemplateChatWrapper({
-			// 	template: fs.readFileSync(opts.templatePath, "utf-8"),
-			// });
-			this.#chatWrapper = new QwenChatWrapper();
+			this.#chatWrapper = new JinjaTemplateChatWrapper({
+				template: fs.readFileSync(opts.templatePath, "utf-8"),
+			});
 	}
 
 	public async init(): Promise<ILLMModel> {
