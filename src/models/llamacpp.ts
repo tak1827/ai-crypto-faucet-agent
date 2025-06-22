@@ -4,6 +4,7 @@ import {
 	type ChatSessionModelFunctions,
 	type ChatWrapper,
 	JinjaTemplateChatWrapper,
+	LlamaLogLevel,
 } from "node-llama-cpp";
 import {
 	type LLamaChatPromptOptions,
@@ -43,6 +44,7 @@ export class LLamaCppModel implements ILLMModel {
 	public async init(): Promise<ILLMModel> {
 		const llama = await getLlama();
 		this.#model = await llama.loadModel({ modelPath: this.modelPath });
+		this.#model.llama.logLevel = LlamaLogLevel.warn;
 		this.#context = await this.#model.createContext();
 		return this;
 	}
