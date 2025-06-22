@@ -1,6 +1,11 @@
 import fs from "node:fs";
 import { basename } from "node:path";
-import { type ChatWrapper, JinjaTemplateChatWrapper } from "node-llama-cpp";
+import {
+	type ChatSessionModelFunctions,
+	type ChatWrapper,
+	JinjaTemplateChatWrapper,
+	QwenChatWrapper,
+} from "node-llama-cpp";
 import {
 	type LLamaChatPromptOptions,
 	LlamaChatSession,
@@ -31,9 +36,10 @@ export class LLamaCppModel implements ILLMModel {
 		this.modelPath = this._validateModelPath(modelPath);
 		this.#modelName = basename(modelPath);
 		if (opts.templatePath)
-			this.#chatWrapper = new JinjaTemplateChatWrapper({
-				template: fs.readFileSync(opts.templatePath, "utf-8"),
-			});
+			// this.#chatWrapper = new JinjaTemplateChatWrapper({
+			// 	template: fs.readFileSync(opts.templatePath, "utf-8"),
+			// });
+			this.#chatWrapper = new QwenChatWrapper();
 	}
 
 	public async init(): Promise<ILLMModel> {
@@ -73,7 +79,7 @@ export class LLamaCppModel implements ILLMModel {
 			stopText?: string[];
 			session?: LlamaChatSession;
 			onTextChunk?: (text: string) => void;
-			functions?: any;
+			functions?: ChatSessionModelFunctions;
 		},
 	): Promise<string> {
 		if (this.#closing) throw this.#closingError;
@@ -86,7 +92,7 @@ export class LLamaCppModel implements ILLMModel {
 				logger.trace(`prompt chunk: ${text}`);
 				if (opt?.onTextChunk) opt.onTextChunk(text);
 			},
-			functions: opt?.functions,
+			functions: opt?.functions as any,
 		});
 		if (!opt || !opt.session) session.dispose();
 		return result;
