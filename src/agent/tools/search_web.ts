@@ -5,14 +5,20 @@ import { googleCustomSearch } from "../../utils/search_google";
 export async function searchWeb(
 	model: ILLMModel,
 	query: string,
+	opts: {
+		needShortSummary?: boolean;
+	} = {},
 ): Promise<{
 	result: string;
-	shortSummary: string;
+	shortSummary: string | null;
 	documentCore: DocumentCore;
-	documentChunks: DocumentChunk[];
+	documentChunk: DocumentChunk;
 }> {
-	const response = await googleCustomSearch(query, { num: 5 });
+	const response = await googleCustomSearch(query, { num: 10 });
 	const items = response.items ?? [];
+	if (items.length === 0) {
+		throw new Error("No search results found");
+	}
 
 	// Concatenate search results into a single text
 	const rawText = items
@@ -32,19 +38,17 @@ export async function searchWeb(
 	const embedding = await model.embed(result);
 	documentChunk.embedding = `[${embedding.join(",")}]`;
 
-	let shortSummary = "";
-	try {
+	let shortSummary = null;
+	if (opts.needShortSummary) {
 		shortSummary = await model.infer(
 			`Summarize the following text in one short sentence.\n${result}`,
 		);
-	} catch {
-		shortSummary = "";
 	}
 
 	return {
 		result,
 		shortSummary,
 		documentCore,
-		documentChunks: [documentChunk],
+		documentChunk,
 	};
 }
