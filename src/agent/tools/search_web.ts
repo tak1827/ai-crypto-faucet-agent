@@ -1,18 +1,19 @@
+import type { Database } from "../../db";
 import { DocumentChunk, DocumentCore } from "../../entities";
 import type { ILLMModel } from "../../models";
 import { googleCustomSearch } from "../../utils/search_google";
 
 export async function searchWeb(
 	model: ILLMModel,
+	db: Database,
 	query: string,
 	opts: {
 		needShortSummary?: boolean;
+		saveToDB?: boolean;
 	} = {},
 ): Promise<{
 	result: string;
 	shortSummary: string | null;
-	documentCore: DocumentCore;
-	documentChunk: DocumentChunk;
 }> {
 	const response = await googleCustomSearch(query, { num: 10 });
 	const items = response.items ?? [];
@@ -30,14 +31,6 @@ export async function searchWeb(
 		`Please rewrite the following search results into a single coherent text.\n${rawText}`,
 	);
 
-	// Create document entities
-	const documentCore = new DocumentCore(query);
-	documentCore.content = result;
-
-	const documentChunk = new DocumentChunk(model.name(), result, documentCore);
-	const embedding = await model.embed(result);
-	documentChunk.embedding = `[${embedding.join(",")}]`;
-
 	let shortSummary = null;
 	if (opts.needShortSummary) {
 		shortSummary = await model.infer(
@@ -45,10 +38,22 @@ export async function searchWeb(
 		);
 	}
 
+	if (opts.saveToDB) {
+		await db.makeTransaction(async (queryRunner) => {
+			const documentCore = new DocumentCore(query);
+			documentCore.content = result;
+
+			const documentChunk = new DocumentChunk(model.name(), result, documentCore);
+			const embedding = await model.embed(result);
+			documentChunk.embedding = `[${embedding.join(",")}]`;
+
+			await queryRunner.manager.save(documentCore);
+			await queryRunner.manager.save(documentChunk);
+		});
+	}
+
 	return {
 		result,
 		shortSummary,
-		documentCore,
-		documentChunk,
 	};
 }
